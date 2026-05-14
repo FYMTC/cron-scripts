@@ -29,7 +29,7 @@ SCRIPTS = [
 NIGHT_QUANT_JSON = "/config/quant_scripts/data/night_quant.json"
 
 
-def _json_module_key(cmd: list) -> str | None:
+def _json_module_key(cmd: list):
     if "--json" not in cmd:
         return None
     path = cmd[1]
