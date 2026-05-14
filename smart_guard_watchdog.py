@@ -26,18 +26,33 @@ def _bj_now():
 
 
 def _in_weekday_market_watch_window():
-    """北京时间工作日 09:00–16:00：应能持续收到 guard 心跳。"""
+    """北京时间工作日 08:40–16:00：应能持续收到 guard 心跳（H1：覆盖盘前准备段）。"""
     t = _bj_now()
     if t.weekday() >= 5:
         return False
     h, m = t.hour, t.minute
-    if h < 9:
+    if h < 8:
+        return False
+    if h == 8 and m < 40:
         return False
     if h > 16:
         return False
     if h == 16 and m > 0:
         return False
     return True
+
+
+def _in_preopen_urgent_window():
+    """08:50–09:05 北京：盘前关键窗口，DOWN 时日志打 URGENT 便于 cron 上下文告警。"""
+    t = _bj_now()
+    if t.weekday() >= 5:
+        return False
+    h, m = t.hour, t.minute
+    if h == 8 and m >= 50:
+        return True
+    if h == 9 and m <= 5:
+        return True
+    return False
 
 
 def _heartbeat_age_sec():
@@ -110,6 +125,11 @@ if __name__ == "__main__":
         sys.exit(0)
 
     print("[Watchdog] smart_guard DOWN — attempting restart...")
+    if _in_preopen_urgent_window():
+        print(
+            "[Watchdog] URGENT pre-open 08:50–09:05 BJ: smart_guard was DOWN — "
+            "cron/Hermes 应检查 guard_daemon.log 与 quant_env"
+        )
     success, result = restart_guard()
     if success:
         print(f"[Watchdog] smart_guard RESTARTED | PIDs: {','.join(result)}")
