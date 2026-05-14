@@ -5,6 +5,8 @@ import subprocess, sys
 PY = "/config/quant_env/bin/python"
 SCRIPTS = [
     [PY, "/config/.hermes/scripts/hermes_harness_preflight.py"],
+    # 选股引擎: 全市场扫描→落盘(供明日08:30盘前简报读取)
+    [PY, "/config/quant_scripts/stock_screener.py", "--top", "15", "--save", "/config/quant_scripts/data/screener_top15.json"],
     [PY, "/config/quant_scripts/signal_executor.py", "verify", "--min-days", "1"],
     [PY, "/config/quant_scripts/signal_executor.py", "report"],
     [PY, "/config/quant_scripts/signal_executor.py", "expire"],
