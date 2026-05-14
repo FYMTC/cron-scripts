@@ -1,5 +1,5 @@
 #!/config/quant_env/bin/python3
-"""14:00 下午速报 — apps/afternoon.py 薄封装，stdout 回显 JSON。"""
+"""14:00 下午速报 — apps/afternoon.py 薄封装，stdout 回显 JSON。子进程 `--save` 超时 600s（含 Baostock 逐只量化）。"""
 import os
 import subprocess
 import sys
@@ -11,7 +11,7 @@ OUT = "/config/quant_scripts/data/afternoon_output.json"
 
 def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    r = subprocess.run([VENV_PY, APP, "--save", OUT], capture_output=True, text=True, timeout=180)
+    r = subprocess.run([VENV_PY, APP, "--save", OUT], capture_output=True, text=True, timeout=600)
     if r.returncode != 0:
         print(f"❌ afternoon.py exit={r.returncode}\nSTDERR:\n{r.stderr[:2000]}", file=sys.stderr)
         if r.stdout:
