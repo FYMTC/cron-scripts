@@ -37,15 +37,9 @@ def main():
         if ln.strip() and ("AGENT_ALERT" in ln or "[AGENT_ALERT]" in ln)
     ]
 
-    payload = {
-        "generated_at": datetime.now().isoformat(),
-        "harness_exit_code": r.returncode,
-        "emergency_signal_nonempty": len(body) > 0,
-        "agent_alert_lines": lines[:80],
-        "raw_signal_preview": body[:12000],
-        "guard_emergency_preview": alt_body[:4000],
-    }
-    print(json.dumps(payload, ensure_ascii=False, indent=2))
+    has_alert = len(lines) > 0
+    print(f"emergency_signal: nonempty={len(body) > 0} agent_alerts={len(lines)}")
+    # 不输出JSON——cron系统 .lower() 会崩在嵌套dict
     sys.exit(0)
 
 

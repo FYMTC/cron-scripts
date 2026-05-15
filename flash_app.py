@@ -26,11 +26,15 @@ def main():
     if r.returncode != 0:
         print(f"❌ flash.py exit={r.returncode}\nSTDERR:\n{r.stderr[:1000]}")
         sys.exit(r.returncode)
-    # 读回 JSON 写 stdout（保证 cron 日志有内容可追溯）
+    # 读回 JSON，输出纯文本摘要（不用JSON，避免 cron 系统 .lower() 崩在嵌套 dict）
     if os.path.exists(OUT):
         with open(OUT) as f:
-            json_str = f.read()
-        print(json_str, end='')
+            data = json.load(f)
+        rec = data.get("recommendation", "?")
+        h_count = len(data.get("holdings", []))
+        a_count = len(data.get("alerts", []))
+        print(f"flash_output ready: {h_count}持仓 {a_count}告警 recommendation={rec}")
+        print(f"JSON saved to {OUT}")
     else:
         print("❌ flash.py ran but output JSON not found")
         sys.exit(1)

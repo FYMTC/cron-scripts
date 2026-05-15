@@ -27,8 +27,14 @@ def main():
             print(r.stdout[:2000], file=sys.stderr)
         sys.exit(r.returncode)
     if os.path.exists(OUT):
+        import json as _json
         with open(OUT, encoding="utf-8") as f:
-            print(f.read(), end="")
+            _d = _json.load(f)
+        _h = len(_d.get("holdings", []))
+        _s = len(_d.get("signals", []))
+        _r = _d.get("recommendation", "?")
+        print(f"night_output ready: {_h}持仓 {_s}信号 recommendation={_r}")
+        print(f"JSON saved to {OUT}")
     else:
         print("❌ night.py ran but output JSON not found", file=sys.stderr)
         sys.exit(1)
