@@ -27,7 +27,14 @@ def main():
         sys.exit(r.returncode)
     if os.path.exists(OUT):
         with open(OUT) as f:
-            print(f.read(), end='')
+            data = json.load(f)
+        # 输出纯文本摘要，不用JSON（避免agent .lower()崩在嵌套dict）
+        rec = data.get("recommendation", "?")
+        h_count = len(data.get("holdings", []))
+        a_count = len(data.get("alerts", []))
+        c_count = len(data.get("candidates", []))
+        print(f"midday_output ready: {h_count}持仓 {a_count}告警 {c_count}候选 recommendation={rec}")
+        print(f"JSON saved to {OUT}")
     else:
         print("❌ midday.py ran but output JSON not found")
         sys.exit(1)
