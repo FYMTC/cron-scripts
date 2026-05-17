@@ -9,6 +9,8 @@ from datetime import datetime
 PY = "/config/quant_env/bin/python3"
 SCRIPTS = [
     [PY, "/config/.hermes/scripts/hermes_harness_preflight.py"],
+    # 宏观/地缘风险（R2）→ cron_state + night_quant
+    [PY, "/config/quant_scripts/core/engines/event_calendar.py", "--json", "--update-cron-state"],
     # 选股引擎: 全市场扫描→落盘(供明日08:30盘前简报读取)
     [PY, "/config/quant_scripts/stock_screener.py", "--top", "15", "--save", "/config/quant_scripts/data/screener_top15.json"],
     [PY, "/config/quant_scripts/signal_executor.py", "verify", "--min-days", "1"],
@@ -37,6 +39,8 @@ def _json_module_key(cmd: list):
         return "risk_monitor"
     if "market_regime" in path:
         return "market_regime"
+    if "event_calendar" in path:
+        return "event_calendar"
     if "stat_arb" in path:
         return "stat_arb"
     if "dl_predictor" in path:
