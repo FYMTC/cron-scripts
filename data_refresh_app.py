@@ -12,6 +12,21 @@ VENV_PY = "/config/quant_env/bin/python3"
 BASE = "/config/quant_scripts/apps"
 DATA = "/config/quant_scripts/data"
 
+sys.path.insert(0, "/config/quant_scripts")
+from cron_refresh_config import EMERGENCY_FILE, EMERGENCY_SIGNAL  # noqa: E402
+
+
+def _push_refresh_alert(slot: str, message: str) -> None:
+    """失败时写紧急通道（guard/紧急 cron 可读），替代原 LLM 推③系统状态。"""
+    body = f"③ 数据刷新失败 [{slot}]\n{message}"[:2000]
+    try:
+        with open(EMERGENCY_SIGNAL, "w", encoding="utf-8") as f:
+            f.write("REFRESH_FAIL")
+        with open(EMERGENCY_FILE, "w", encoding="utf-8") as f:
+            f.write(body)
+    except OSError:
+        pass
+
 SLOTS = {
     "flash": ("flash.py", "flash_output.json"),
     "midday": ("midday.py", "midday_output.json"),
@@ -48,6 +63,7 @@ def main():
     }
     if r.returncode != 0:
         payload["stderr"] = (r.stderr or "")[:800]
+        _push_refresh_alert(slot, payload["stderr"] or f"exit {r.returncode}")
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         sys.exit(r.returncode)
 
