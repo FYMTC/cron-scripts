@@ -58,7 +58,13 @@ def main():
     morning = {}
     if os.path.isfile(OUT):
         with open(OUT, encoding="utf-8") as f:
-            morning = json.load(f)
+            text = f.read()
+        # Skip Baostock "login success!/logout success!" prefix written by morning.py --save
+        brace = text.find("{")
+        if brace >= 0:
+            morning = json.loads(text[brace:])
+        else:
+            morning = json.loads(text)
 
     quant_bundle = _portfolio_quant(morning.get("holdings") or [])
 

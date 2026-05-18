@@ -15,7 +15,12 @@ def _load(name):
     if not os.path.isfile(p):
         return {}
     with open(p, encoding="utf-8") as f:
-        return json.load(f)
+        text = f.read()
+    # Skip Baostock "login success!/logout success!" prefix
+    brace = text.find("{")
+    if brace >= 0:
+        return json.loads(text[brace:])
+    return json.loads(text)
 
 
 def morning_digest():
