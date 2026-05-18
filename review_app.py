@@ -14,8 +14,20 @@ SELF_CHECK = "/config/quant_scripts/v5_self_check.py"
 NIGHT = "/config/quant_scripts/apps/night.py"
 AUDIT = "/config/quant_scripts/signal_audit.py"
 CVRF = "/config/quant_scripts/cvrf_reflection.py"
+DIGEST = os.path.join(os.path.dirname(__file__), "digest_app.py")
 OUT = "/config/quant_scripts/data/night_output.json"
 REVIEW_JSON = "/config/quant_scripts/data/review_bundle.json"
+
+
+def _run_digest() -> dict:
+    r = subprocess.run([VENV_PY, DIGEST, "night"], capture_output=True, text=True, timeout=60)
+    if r.returncode != 0:
+        return {"error": (r.stderr or r.stdout or "digest failed")[:300]}
+    raw = (r.stdout or "").strip()
+    brace = raw.find("{")
+    if brace >= 0:
+        return json.loads(raw[brace:])
+    return json.loads(raw)
 
 
 def main():
@@ -73,14 +85,19 @@ def main():
         "holdings_count": len(night.get("holdings") or []),
         "has_preflight_modules": bool((night.get("quant") or {}).get("preflight_modules")),
     }
+    digest = _run_digest()
+    bundle["digest"] = digest
+    bundle["wechat_work_report_body"] = digest.get("wechat_work_report_body") or digest.get("digest_text", "")
+    bundle["push_wechat_required"] = bool(digest.get("push_wechat_required", True))
+    bundle["wechat_report_type"] = digest.get("wechat_report_type", "②工作报告-晚复盘")
     bundle["needs_hermes"] = True
-    instr = (
-        "读 review_bundle + night_output.json；输出晚复盘≤500字+明日关注；"
-        "将教训写入 stock_kb insights；仅推②工作报告-晚复盘一条。禁止贴 night_preflight 全文。"
+    instr = digest.get(
+        "instruction",
+        "以 wechat_work_report_body 为底稿写详细晚复盘；deliver=origin 自动推微信。",
     )
     if not bundle.get("v5_self_check_ok", True):
         instr += (
-            " v5_self_check 失败：另推③系统状态一条，列出 checks.unittest.failure_names 或 paths.missing。"
+            " v5_self_check 失败：最终回复末尾另加③系统状态段，列出 failure_names 或 paths.missing。"
         )
     bundle["instruction"] = instr
 
