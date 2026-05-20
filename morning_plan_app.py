@@ -87,6 +87,13 @@ def main():
         text=True,
         timeout=300,
     )
+    if r2.returncode != 0:
+        sys.stderr.write(f"signal_loop failed rc={r2.returncode}\n")
+        if r2.stderr:
+            sys.stderr.write(r2.stderr)
+        elif r2.stdout:
+            sys.stderr.write(r2.stdout[:1000])
+        sys.exit(r2.returncode)
     sig = {}
     if r2.stdout:
         try:
