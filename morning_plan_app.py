@@ -90,7 +90,12 @@ def main():
     sig = {}
     if r2.stdout:
         try:
-            sig = json.loads(r2.stdout)
+            raw = r2.stdout.strip()
+            brace = raw.find("{")
+            if brace >= 0:
+                sig = json.loads(raw[brace:])
+            else:
+                sig = json.loads(raw)
         except json.JSONDecodeError:
             sig = {"raw": r2.stdout[:1000]}
 
