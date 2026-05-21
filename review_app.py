@@ -17,6 +17,8 @@ CVRF = "/config/quant_scripts/cvrf_reflection.py"
 DIGEST = os.path.join(os.path.dirname(__file__), "digest_app.py")
 OUT = "/config/quant_scripts/data/night_output.json"
 REVIEW_JSON = "/config/quant_scripts/data/review_bundle.json"
+FEATURE_SNAPSHOT_JSON = "/config/quant_scripts/data/feature_snapshot.json"
+PLAN_JSON = "/config/quant_scripts/data/plan_bundle.json"
 
 
 def _run_digest() -> dict:
@@ -77,6 +79,27 @@ def main():
     if os.path.isfile(OUT):
         with open(OUT, encoding="utf-8") as f:
             night = json.load(f)
+
+    feature_snapshot = {}
+    if os.path.isfile(FEATURE_SNAPSHOT_JSON):
+        with open(FEATURE_SNAPSHOT_JSON, encoding="utf-8") as f:
+            feature_snapshot = json.load(f)
+    plan_bundle = {}
+    if os.path.isfile(PLAN_JSON):
+        with open(PLAN_JSON, encoding="utf-8") as f:
+            plan_bundle = json.load(f)
+
+    bundle["feature_snapshot"] = {
+        "generated_at": feature_snapshot.get("generated_at"),
+        "per_stock_count": len(feature_snapshot.get("per_stock") or {}),
+        "missing_codes": (feature_snapshot.get("runtime_flags") or {}).get("missing_codes") or [],
+        "feature_fresh": (feature_snapshot.get("runtime_flags") or {}).get("feature_fresh"),
+    }
+    signal_auto_generate = plan_bundle.get("signal_auto_generate") or {}
+    bundle["runtime_research_consumption"] = {
+        "plan_has_feature_snapshot": "feature_snapshot" in plan_bundle,
+        "signal_auto_generate_feature_snapshot_used": signal_auto_generate.get("feature_snapshot_used"),
+    }
 
     bundle["ok"] = True
     bundle["night_output_path"] = OUT

@@ -11,6 +11,7 @@ VENV_PY = "/config/quant_env/bin/python3"
 SCRIPTS = "/config/quant_scripts"
 MORNING = "/config/quant_scripts/apps/morning.py"
 SIGNAL_LOOP = "/config/quant_scripts/signal_loop.py"
+FEATURE_SNAPSHOT = "/config/quant_scripts/feature_snapshot.py"
 DIGEST = os.path.join(os.path.dirname(__file__), "digest_app.py")
 OUT = "/config/quant_scripts/data/morning_output.json"
 PLAN_JSON = "/config/quant_scripts/data/plan_bundle.json"
@@ -56,6 +57,17 @@ def _run_digest() -> dict:
     return json.loads(raw)
 
 
+def _run_feature_snapshot() -> dict:
+    r = subprocess.run([VENV_PY, FEATURE_SNAPSHOT, "--json"], capture_output=True, text=True, timeout=300)
+    if r.returncode != 0:
+        return {"error": (r.stderr or r.stdout or "feature_snapshot failed")[:500]}
+    raw = (r.stdout or "").strip()
+    brace = raw.find("{")
+    if brace >= 0:
+        return json.loads(raw[brace:])
+    return json.loads(raw)
+
+
 def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
 
@@ -80,6 +92,7 @@ def main():
             morning = json.loads(text)
 
     quant_bundle = _portfolio_quant(morning.get("holdings") or [])
+    feature_snapshot = _run_feature_snapshot()
 
     r2 = subprocess.run(
         [VENV_PY, SIGNAL_LOOP, "auto-generate"],
@@ -118,6 +131,8 @@ def main():
         "event_risk": morning.get("event_risk"),
         "de_risk_plan": morning.get("de_risk_plan"),
         "quant_bundle": quant_bundle,
+        "feature_snapshot": feature_snapshot,
+        "feature_snapshot_path": "/config/quant_scripts/data/feature_snapshot.json",
         "signal_auto_generate": sig,
         "digest": digest,
         "wechat_work_report_body": digest.get("wechat_work_report_body") or digest.get("digest_text", ""),
