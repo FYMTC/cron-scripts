@@ -68,6 +68,16 @@ def _run_feature_snapshot() -> dict:
     return json.loads(raw)
 
 
+def _constraint_explainability(constraints: list) -> dict:
+    try:
+        sys.path.insert(0, SCRIPTS)
+        from decision_explainer import build_counterfactual_from_constraints
+
+        return build_counterfactual_from_constraints(constraints or [])
+    except Exception as e:
+        return {"summary": f"constraint explainability unavailable: {str(e)[:120]}"}
+
+
 def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
 
@@ -120,6 +130,9 @@ def main():
             sig = {"raw": r2.stdout[:1000]}
 
     digest = _run_digest()
+    explainability = {
+        "constraints": _constraint_explainability(morning.get("constraints") or []),
+    }
 
     plan = {
         "generated_at": morning.get("generated_at"),
@@ -134,6 +147,7 @@ def main():
         "feature_snapshot": feature_snapshot,
         "feature_snapshot_path": "/config/quant_scripts/data/feature_snapshot.json",
         "signal_auto_generate": sig,
+        "explainability": explainability,
         "digest": digest,
         "wechat_work_report_body": digest.get("wechat_work_report_body") or digest.get("digest_text", ""),
         "push_wechat_required": bool(digest.get("push_wechat_required", True)),

@@ -32,6 +32,15 @@ def _run_digest() -> dict:
     return json.loads(raw)
 
 
+def _counterfactual_examples(plan_bundle: dict) -> dict:
+    explainability = (plan_bundle or {}).get("explainability") or {}
+    constraints = explainability.get("constraints") or {}
+    return {
+        "plan_constraints": constraints,
+        "has_counterfactual": bool(constraints),
+    }
+
+
 def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     bundle = {"generated_at": datetime.now().isoformat(), "phase": "review", "steps": {}}
@@ -100,6 +109,7 @@ def main():
         "plan_has_feature_snapshot": "feature_snapshot" in plan_bundle,
         "signal_auto_generate_feature_snapshot_used": signal_auto_generate.get("feature_snapshot_used"),
     }
+    bundle["explainability"] = _counterfactual_examples(plan_bundle)
 
     bundle["ok"] = True
     bundle["night_output_path"] = OUT
