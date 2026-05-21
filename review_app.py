@@ -41,6 +41,67 @@ def _counterfactual_examples(plan_bundle: dict) -> dict:
     }
 
 
+def _build_model_risk_ledger(plan_bundle: dict, feature_snapshot: dict) -> dict:
+    feature_runtime = (feature_snapshot or {}).get("runtime_flags") or {}
+    portfolio = (feature_snapshot or {}).get("portfolio") or {}
+    event_risk = portfolio.get("event_risk") or {}
+    quant_bundle = (plan_bundle or {}).get("quant_bundle") or {}
+    signal_auto_generate = (plan_bundle or {}).get("signal_auto_generate") or {}
+    event_risk_plan = (plan_bundle or {}).get("event_risk") or {}
+    items = [
+        {
+            "name": "feature_snapshot",
+            "type": "feature_bundle",
+            "source_modules": (feature_snapshot or {}).get("source_modules") or [],
+            "as_of": (feature_snapshot or {}).get("generated_at"),
+            "version": (feature_snapshot or {}).get("as_of_date"),
+            "status": "ok" if feature_runtime.get("feature_fresh", True) else "fallback",
+            "degraded": not bool(feature_runtime.get("feature_fresh", True)),
+            "fallback_reason": None if feature_runtime.get("feature_fresh", True) else "feature_snapshot_stale",
+        },
+        {
+            "name": "market_regime",
+            "type": "risk_model",
+            "source_modules": ["market_regime"],
+            "as_of": (feature_snapshot or {}).get("generated_at"),
+            "version": "portfolio.market_regime",
+            "status": "ok" if (portfolio.get("market_regime") or {}).get("ok") else "fallback",
+            "degraded": not bool((portfolio.get("market_regime") or {}).get("ok")),
+            "fallback_reason": None if (portfolio.get("market_regime") or {}).get("ok") else (quant_bundle.get("market_regime_error") or "market_regime_unavailable"),
+        },
+        {
+            "name": "event_risk",
+            "type": "risk_overlay",
+            "source_modules": ["event_risk"],
+            "as_of": event_risk_plan.get("assessed_at") or (feature_snapshot or {}).get("generated_at"),
+            "version": event_risk_plan.get("date") or (feature_snapshot or {}).get("as_of_date"),
+            "status": "fallback" if event_risk.get("source") == "not_wired_yet" else "ok",
+            "degraded": event_risk.get("source") == "not_wired_yet",
+            "fallback_reason": "not_wired_yet" if event_risk.get("source") == "not_wired_yet" else None,
+        },
+        {
+            "name": "signal_auto_generate",
+            "type": "signal_engine",
+            "source_modules": ["signal_loop"],
+            "as_of": (plan_bundle or {}).get("generated_at"),
+            "version": signal_auto_generate.get("lineage_id") or "plan_bundle.signal_auto_generate",
+            "status": "ok" if signal_auto_generate.get("feature_snapshot_used") else "fallback",
+            "degraded": not bool(signal_auto_generate.get("feature_snapshot_used")),
+            "fallback_reason": None if signal_auto_generate.get("feature_snapshot_used") else "feature_snapshot_not_consumed",
+        },
+    ]
+    degraded_items = [item["name"] for item in items if item.get("degraded")]
+    return {
+        "summary": {
+            "model_count": len(items),
+            "degraded_count": len(degraded_items),
+            "degraded_items": degraded_items,
+            "feature_snapshot_fresh": bool(feature_runtime.get("feature_fresh", True)),
+        },
+        "items": items,
+    }
+
+
 def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     bundle = {"generated_at": datetime.now().isoformat(), "phase": "review", "steps": {}}
@@ -110,6 +171,7 @@ def main():
         "signal_auto_generate_feature_snapshot_used": signal_auto_generate.get("feature_snapshot_used"),
     }
     bundle["explainability"] = _counterfactual_examples(plan_bundle)
+    bundle["model_risk_ledger"] = _build_model_risk_ledger(plan_bundle, feature_snapshot)
 
     bundle["ok"] = True
     bundle["night_output_path"] = OUT
