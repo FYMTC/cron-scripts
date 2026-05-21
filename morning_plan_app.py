@@ -78,6 +78,64 @@ def _constraint_explainability(constraints: list) -> dict:
         return {"summary": f"constraint explainability unavailable: {str(e)[:120]}"}
 
 
+def _build_model_risk_ledger(feature_snapshot: dict, quant_bundle: dict, signal_auto_generate: dict, generated_at: str, event_risk: dict) -> dict:
+    feature_runtime = (feature_snapshot or {}).get("runtime_flags") or {}
+    portfolio = (feature_snapshot or {}).get("portfolio") or {}
+    event_risk_snapshot = portfolio.get("event_risk") or {}
+    items = [
+        {
+            "name": "feature_snapshot",
+            "type": "feature_bundle",
+            "source_modules": (feature_snapshot or {}).get("source_modules") or [],
+            "as_of": (feature_snapshot or {}).get("generated_at"),
+            "version": (feature_snapshot or {}).get("as_of_date"),
+            "status": "ok" if feature_runtime.get("feature_fresh", True) else "fallback",
+            "degraded": not bool(feature_runtime.get("feature_fresh", True)),
+            "fallback_reason": None if feature_runtime.get("feature_fresh", True) else "feature_snapshot_stale",
+        },
+        {
+            "name": "market_regime",
+            "type": "risk_model",
+            "source_modules": ["market_regime"],
+            "as_of": (feature_snapshot or {}).get("generated_at"),
+            "version": "portfolio.market_regime",
+            "status": "ok" if (portfolio.get("market_regime") or {}).get("ok") else "fallback",
+            "degraded": not bool((portfolio.get("market_regime") or {}).get("ok")),
+            "fallback_reason": None if (portfolio.get("market_regime") or {}).get("ok") else (quant_bundle.get("market_regime_error") or "market_regime_unavailable"),
+        },
+        {
+            "name": "event_risk",
+            "type": "risk_overlay",
+            "source_modules": ["event_risk"],
+            "as_of": (event_risk or {}).get("assessed_at") or (feature_snapshot or {}).get("generated_at"),
+            "version": (event_risk or {}).get("date") or (feature_snapshot or {}).get("as_of_date"),
+            "status": "fallback" if event_risk_snapshot.get("source") == "not_wired_yet" else "ok",
+            "degraded": event_risk_snapshot.get("source") == "not_wired_yet",
+            "fallback_reason": "not_wired_yet" if event_risk_snapshot.get("source") == "not_wired_yet" else None,
+        },
+        {
+            "name": "signal_auto_generate",
+            "type": "signal_engine",
+            "source_modules": ["signal_loop"],
+            "as_of": generated_at,
+            "version": signal_auto_generate.get("lineage_id") or "plan_bundle.signal_auto_generate",
+            "status": "ok" if signal_auto_generate.get("feature_snapshot_used") else "fallback",
+            "degraded": not bool(signal_auto_generate.get("feature_snapshot_used")),
+            "fallback_reason": None if signal_auto_generate.get("feature_snapshot_used") else "feature_snapshot_not_consumed",
+        },
+    ]
+    degraded_items = [item["name"] for item in items if item.get("degraded")]
+    return {
+        "summary": {
+            "model_count": len(items),
+            "degraded_count": len(degraded_items),
+            "degraded_items": degraded_items,
+            "feature_snapshot_fresh": bool(feature_runtime.get("feature_fresh", True)),
+        },
+        "items": items,
+    }
+
+
 def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
 
@@ -129,10 +187,16 @@ def main():
         except json.JSONDecodeError:
             sig = {"raw": r2.stdout[:1000]}
 
-    digest = _run_digest()
     explainability = {
         "constraints": _constraint_explainability(morning.get("constraints") or []),
     }
+    model_risk_ledger = _build_model_risk_ledger(
+        feature_snapshot=feature_snapshot,
+        quant_bundle=quant_bundle,
+        signal_auto_generate=sig,
+        generated_at=morning.get("generated_at"),
+        event_risk=morning.get("event_risk") or {},
+    )
 
     plan = {
         "generated_at": morning.get("generated_at"),
@@ -148,16 +212,21 @@ def main():
         "feature_snapshot_path": "/config/quant_scripts/data/feature_snapshot.json",
         "signal_auto_generate": sig,
         "explainability": explainability,
-        "digest": digest,
-        "wechat_work_report_body": digest.get("wechat_work_report_body") or digest.get("digest_text", ""),
-        "push_wechat_required": bool(digest.get("push_wechat_required", True)),
-        "wechat_report_type": digest.get("wechat_report_type", "②工作报告-早计划"),
-        "needs_hermes": True,
-        "instruction": digest.get(
-            "instruction",
-            "必读 wechat_work_report_body；润色扩展后作为最终回复推微信（deliver=origin）。禁止跳过 digest。",
-        ),
+        "model_risk_ledger": model_risk_ledger,
     }
+    with open(PLAN_JSON, "w", encoding="utf-8") as f:
+        json.dump(plan, f, ensure_ascii=False, indent=2)
+
+    digest = _run_digest()
+    plan["digest"] = digest
+    plan["wechat_work_report_body"] = digest.get("wechat_work_report_body") or digest.get("digest_text", "")
+    plan["push_wechat_required"] = bool(digest.get("push_wechat_required", True))
+    plan["wechat_report_type"] = digest.get("wechat_report_type", "②工作报告-早计划")
+    plan["needs_hermes"] = True
+    plan["instruction"] = digest.get(
+        "instruction",
+        "必读 wechat_work_report_body；润色扩展后作为最终回复推微信（deliver=origin）。禁止跳过 digest。",
+    )
     with open(PLAN_JSON, "w", encoding="utf-8") as f:
         json.dump(plan, f, ensure_ascii=False, indent=2)
     plan["plan_bundle_path"] = PLAN_JSON

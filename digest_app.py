@@ -99,6 +99,46 @@ def _fmt_candidates(cands: List[dict], limit: int = 8) -> List[str]:
     return lines
 
 
+def _fmt_explainability(plan: dict) -> List[str]:
+    constraints = ((plan or {}).get("explainability") or {}).get("constraints") or {}
+    if not constraints:
+        return []
+    lines = []
+    if constraints.get("summary"):
+        lines.append(f"- {constraints.get('summary')}")
+    for factor in (constraints.get("blocking_factors") or [])[:3]:
+        msg = factor.get("message") or factor.get("rule")
+        required = factor.get("required")
+        if required:
+            lines.append(f"- 阻塞因子 {factor.get('rule', '?')}: {msg}；要放行为 {required}")
+        else:
+            lines.append(f"- 阻塞因子 {factor.get('rule', '?')}: {msg}")
+    if constraints.get("next_best_action"):
+        lines.append(f"- 次优动作: {constraints.get('next_best_action')}")
+    return lines
+
+
+def _fmt_model_risk(plan_or_review: dict) -> List[str]:
+    ledger = (plan_or_review or {}).get("model_risk_ledger") or {}
+    summary = ledger.get("summary") or {}
+    items = ledger.get("items") or []
+    if not summary and not items:
+        return []
+    lines = [
+        f"- 模型/特征组件: {summary.get('model_count', len(items))} 个",
+        f"- 降级组件: {summary.get('degraded_count', 0)} 个",
+    ]
+    degraded_items = summary.get("degraded_items") or []
+    if degraded_items:
+        lines.append(f"- 当前降级: {', '.join(degraded_items[:5])}")
+    for item in items[:4]:
+        if item.get("degraded"):
+            lines.append(
+                f"- {item.get('name')}: {item.get('status')} ({item.get('fallback_reason') or 'unknown'})"
+            )
+    return lines
+
+
 def morning_digest() -> dict:
     m = _load("morning_output.json")
     plan = _load("plan_bundle.json")
@@ -106,7 +146,6 @@ def morning_digest() -> dict:
         return {"error": "morning_output.json missing", "push_wechat_required": False}
 
     constraints = m.get("constraints") or []
-    constraints_fail = [c for c in constraints if not c.get("pass")]
     cands = m.get("candidates") or plan.get("candidates_top") or []
     sig = plan.get("signal_auto_generate") or m.get("signal_auto_generate") or {}
 
@@ -119,6 +158,8 @@ def morning_digest() -> dict:
 
     parts.append(_section("持仓", _fmt_holdings(m.get("holdings") or [])))
     parts.append(_section("硬约束", _fmt_constraints(constraints)))
+    parts.append(_section("解释层（为什么暂不放行）", _fmt_explainability(plan)))
+    parts.append(_section("模型风险台账", _fmt_model_risk(plan)))
     parts.append(_section("宏观 / 地缘 (R2)", _fmt_event_risk(m)))
 
     qs = m.get("quant_summary") or {}
@@ -165,7 +206,7 @@ def morning_digest() -> dict:
         "wechat_report_type": "②工作报告-早计划",
         "needs_hermes": True,
         "instruction": (
-            "以 wechat_work_report_body 为底稿润色/扩展后作为最终回复（可更详细，禁止删节约束/宏观/持仓）；"
+            "以 wechat_work_report_body 为底稿润色/扩展后作为最终回复（可更详细，禁止删节约束/宏观/持仓/解释层）；"
             "deliver=origin 自动推微信。禁止跳过推送。禁止修脚本报错除非 script 失败。"
         ),
     }
@@ -200,6 +241,8 @@ def night_digest() -> dict:
         )
 
     parts.append(_section("收盘持仓", _fmt_holdings(night.get("holdings") or [])))
+    parts.append(_section("拒单 / 约束主因", _fmt_explainability(r)))
+    parts.append(_section("模型风险台账", _fmt_model_risk(r)))
     parts.append(_section("宏观 / 地缘 (R2)", _fmt_event_risk(night)))
 
     if summary:
