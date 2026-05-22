@@ -37,16 +37,20 @@ def _extract_json_object(raw: str) -> dict:
     if not text:
         return {}
     decoder = json.JSONDecoder()
+    found = []
     for idx, ch in enumerate(text):
         if ch != "{":
             continue
         try:
             obj, _ = decoder.raw_decode(text[idx:])
             if isinstance(obj, dict):
-                return obj
+                found.append(obj)
         except json.JSONDecodeError:
             continue
-    return {}
+    for obj in reversed(found):
+        if "checks" in obj or "phase" in obj:
+            return obj
+    return found[-1] if found else {}
 
 
 def _counterfactual_examples(plan_bundle: dict) -> dict:
