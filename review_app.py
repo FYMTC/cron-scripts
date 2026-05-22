@@ -32,6 +32,23 @@ def _run_digest() -> dict:
     return json.loads(raw)
 
 
+def _extract_json_object(raw: str) -> dict:
+    text = (raw or "").strip()
+    if not text:
+        return {}
+    decoder = json.JSONDecoder()
+    for idx, ch in enumerate(text):
+        if ch != "{":
+            continue
+        try:
+            obj, _ = decoder.raw_decode(text[idx:])
+            if isinstance(obj, dict):
+                return obj
+        except json.JSONDecodeError:
+            continue
+    return {}
+
+
 def _counterfactual_examples(plan_bundle: dict) -> dict:
     explainability = (plan_bundle or {}).get("explainability") or {}
     constraints = explainability.get("constraints") or {}
@@ -109,9 +126,10 @@ def main():
     r_sc = subprocess.run([VENV_PY, SELF_CHECK, "--json"], capture_output=True, text=True, timeout=180)
     self_check = {"exit_code": r_sc.returncode, "ok": r_sc.returncode == 0}
     if r_sc.stdout:
-        try:
-            self_check.update(json.loads(r_sc.stdout))
-        except json.JSONDecodeError:
+        parsed = _extract_json_object(r_sc.stdout)
+        if parsed:
+            self_check.update(parsed)
+        else:
             self_check["raw"] = r_sc.stdout[:800]
     bundle["steps"]["v5_self_check"] = self_check
     bundle["v5_self_check_ok"] = self_check.get("ok", r_sc.returncode == 0)
