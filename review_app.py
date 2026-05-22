@@ -165,6 +165,13 @@ def main():
         "missing_codes": (feature_snapshot.get("runtime_flags") or {}).get("missing_codes") or [],
         "feature_fresh": (feature_snapshot.get("runtime_flags") or {}).get("feature_fresh"),
     }
+    bundle["account_runtime"] = {
+        "ok": self_check.get("checks", {}).get("primary_account_runtime", {}).get("ok"),
+        "runtime_mode": self_check.get("checks", {}).get("primary_account_runtime", {}).get("runtime_mode"),
+        "desk_primary_account": self_check.get("checks", {}).get("primary_account_runtime", {}).get("desk_primary_account"),
+        "primary_account": self_check.get("checks", {}).get("primary_account_runtime", {}).get("primary_account") or {},
+        "special_mode": bool(self_check.get("checks", {}).get("primary_account_runtime", {}).get("runtime_mode") == "multi_account_mode"),
+    }
     signal_auto_generate = plan_bundle.get("signal_auto_generate") or {}
     bundle["runtime_research_consumption"] = {
         "plan_has_feature_snapshot": "feature_snapshot" in plan_bundle,

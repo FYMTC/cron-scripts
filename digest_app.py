@@ -212,6 +212,24 @@ def morning_digest() -> dict:
     }
 
 
+def _fmt_account_runtime(review: dict) -> List[str]:
+    runtime = (review or {}).get("account_runtime") or {}
+    primary = runtime.get("primary_account") or {}
+    if not runtime:
+        return []
+    lines = [
+        f"- 运行模式: {runtime.get('runtime_mode', '?')}",
+        f"- 主账户: {runtime.get('desk_primary_account', '?')}",
+    ]
+    if primary.get("label"):
+        lines.append(f"- 主链标签: {primary.get('label')}")
+    if primary.get("position_count") is not None:
+        lines.append(f"- 主账户持仓数: {primary.get('position_count')}")
+    if runtime.get("special_mode"):
+        lines.append("- special_mode: 已启用多账户特殊模式")
+    return lines
+
+
 def night_digest() -> dict:
     n = _load("night_output.json")
     r = _load("review_bundle.json")
@@ -241,6 +259,7 @@ def night_digest() -> dict:
         )
 
     parts.append(_section("收盘持仓", _fmt_holdings(night.get("holdings") or [])))
+    parts.append(_section("账户运行态", _fmt_account_runtime(r)))
     parts.append(_section("拒单 / 约束主因", _fmt_explainability(r)))
     parts.append(_section("模型风险台账", _fmt_model_risk(r)))
     parts.append(_section("宏观 / 地缘 (R2)", _fmt_event_risk(night)))
