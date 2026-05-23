@@ -15,10 +15,11 @@ NIGHT = "/config/quant_scripts/apps/night.py"
 AUDIT = "/config/quant_scripts/signal_audit.py"
 CVRF = "/config/quant_scripts/cvrf_reflection.py"
 DIGEST = os.path.join(os.path.dirname(__file__), "digest_app.py")
-OUT = "/config/quant_scripts/data/night_output.json"
-REVIEW_JSON = "/config/quant_scripts/data/review_bundle.json"
-FEATURE_SNAPSHOT_JSON = "/config/quant_scripts/data/feature_snapshot.json"
-PLAN_JSON = "/config/quant_scripts/data/plan_bundle.json"
+RUNTIME_DATA_DIR = os.environ.get("QUANT_RUNTIME_DATA_DIR") or "/config/quant_scripts/data"
+OUT = os.path.join(RUNTIME_DATA_DIR, "night_output.json")
+REVIEW_JSON = os.path.join(RUNTIME_DATA_DIR, "review_bundle.json")
+FEATURE_SNAPSHOT_JSON = os.path.join(RUNTIME_DATA_DIR, "feature_snapshot.json")
+PLAN_JSON = os.path.join(RUNTIME_DATA_DIR, "plan_bundle.json")
 
 
 def _run_digest() -> dict:

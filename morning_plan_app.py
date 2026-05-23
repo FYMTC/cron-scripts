@@ -6,6 +6,7 @@ import json
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 VENV_PY = "/config/quant_env/bin/python3"
 SCRIPTS = "/config/quant_scripts"
@@ -13,8 +14,10 @@ MORNING = "/config/quant_scripts/apps/morning.py"
 SIGNAL_LOOP = "/config/quant_scripts/signal_loop.py"
 FEATURE_SNAPSHOT = "/config/quant_scripts/feature_snapshot.py"
 DIGEST = os.path.join(os.path.dirname(__file__), "digest_app.py")
-OUT = "/config/quant_scripts/data/morning_output.json"
-PLAN_JSON = "/config/quant_scripts/data/plan_bundle.json"
+RUNTIME_DATA_DIR = os.environ.get("QUANT_RUNTIME_DATA_DIR") or "/config/quant_scripts/data"
+OUT = os.path.join(RUNTIME_DATA_DIR, "morning_output.json")
+PLAN_JSON = os.path.join(RUNTIME_DATA_DIR, "plan_bundle.json")
+FEATURE_SNAPSHOT_PATH = os.path.join(RUNTIME_DATA_DIR, "feature_snapshot.json")
 
 
 def _portfolio_quant(holdings: list, limit: int = 5) -> dict:
@@ -209,7 +212,7 @@ def main():
         "de_risk_plan": morning.get("de_risk_plan"),
         "quant_bundle": quant_bundle,
         "feature_snapshot": feature_snapshot,
-        "feature_snapshot_path": "/config/quant_scripts/data/feature_snapshot.json",
+        "feature_snapshot_path": FEATURE_SNAPSHOT_PATH,
         "signal_auto_generate": sig,
         "explainability": explainability,
         "model_risk_ledger": model_risk_ledger,
