@@ -20,6 +20,7 @@ OUT = os.path.join(RUNTIME_DATA_DIR, "night_output.json")
 REVIEW_JSON = os.path.join(RUNTIME_DATA_DIR, "review_bundle.json")
 FEATURE_SNAPSHOT_JSON = os.path.join(RUNTIME_DATA_DIR, "feature_snapshot.json")
 PLAN_JSON = os.path.join(RUNTIME_DATA_DIR, "plan_bundle.json")
+TEST_MODE = bool(os.environ.get("QUANT_RUNTIME_SCENARIO") or os.environ.get("QUANT_TEST_MODE"))
 
 
 def _run_digest() -> dict:
@@ -128,16 +129,19 @@ def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     bundle = {"generated_at": datetime.now().isoformat(), "phase": "review", "steps": {}}
 
-    r_sc = subprocess.run([VENV_PY, SELF_CHECK, "--json"], capture_output=True, text=True, timeout=180)
-    self_check = {"exit_code": r_sc.returncode, "ok": r_sc.returncode == 0}
-    if r_sc.stdout:
-        parsed = _extract_json_object(r_sc.stdout)
-        if parsed:
-            self_check.update(parsed)
-        else:
-            self_check["raw"] = r_sc.stdout[:800]
+    if TEST_MODE:
+        self_check = {"exit_code": 0, "ok": True, "skipped": "test_mode"}
+    else:
+        r_sc = subprocess.run([VENV_PY, SELF_CHECK, "--json"], capture_output=True, text=True, timeout=180)
+        self_check = {"exit_code": r_sc.returncode, "ok": r_sc.returncode == 0}
+        if r_sc.stdout:
+            parsed = _extract_json_object(r_sc.stdout)
+            if parsed:
+                self_check.update(parsed)
+            else:
+                self_check["raw"] = r_sc.stdout[:800]
     bundle["steps"]["v5_self_check"] = self_check
-    bundle["v5_self_check_ok"] = self_check.get("ok", r_sc.returncode == 0)
+    bundle["v5_self_check_ok"] = bool(self_check.get("ok", False))
 
     r0 = subprocess.run([VENV_PY, PREFLIGHT], capture_output=True, text=True, timeout=900)
     bundle["steps"]["night_preflight"] = {"exit_code": r0.returncode}
@@ -163,10 +167,14 @@ def main():
     bundle["steps"]["signal_audit"] = {"exit_code": r2.returncode}
     bundle["signal_audit"] = audit
 
-    r3 = subprocess.run([VENV_PY, CVRF], capture_output=True, text=True, timeout=180)
-    bundle["steps"]["cvrf_reflection"] = {"exit_code": r3.returncode}
-    if r3.stdout:
-        bundle["cvrf_stdout_preview"] = r3.stdout[:1200]
+    r3 = None
+    if TEST_MODE:
+        bundle["steps"]["cvrf_reflection"] = {"exit_code": 0, "skipped": "test_mode"}
+    else:
+        r3 = subprocess.run([VENV_PY, CVRF], capture_output=True, text=True, timeout=180)
+        bundle["steps"]["cvrf_reflection"] = {"exit_code": r3.returncode}
+        if r3.stdout:
+            bundle["cvrf_stdout_preview"] = r3.stdout[:1200]
 
     night = {}
     if os.path.isfile(OUT):

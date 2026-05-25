@@ -1,34 +1,47 @@
 #!/config/quant_env/bin/python3
 """21:00 夜报前置 — 信号 + 风险 + 数据 + 审计 + CVRF + Q-phase全量量化"""
 import json
+import os
 import re
 import subprocess
 import sys
 from datetime import datetime
 
 PY = "/config/quant_env/bin/python3"
-SCRIPTS = [
+RUNTIME_DATA_DIR = os.environ.get("QUANT_RUNTIME_DATA_DIR") or "/config/quant_scripts/data"
+SCREENER_JSON = os.path.join(RUNTIME_DATA_DIR, "screener_top15.json")
+NIGHT_QUANT_JSON = os.path.join(RUNTIME_DATA_DIR, "night_quant.json")
+TEST_MODE = bool(os.environ.get("QUANT_RUNTIME_SCENARIO") or os.environ.get("QUANT_TEST_MODE"))
+BASE_SCRIPTS = [
     [PY, "/config/.hermes/scripts/hermes_harness_preflight.py"],
-    # 宏观/地缘风险（R2）→ cron_state + night_quant
     [PY, "/config/quant_scripts/core/engines/event_calendar.py", "--json", "--update-cron-state"],
-    # 选股引擎: 全市场扫描→落盘(供明日08:30盘前简报读取)
-    [PY, "/config/quant_scripts/stock_screener.py", "--top", "15", "--save", "/config/quant_scripts/data/screener_top15.json"],
     [PY, "/config/quant_scripts/signal_executor.py", "verify", "--min-days", "1"],
     [PY, "/config/quant_scripts/signal_executor.py", "report"],
     [PY, "/config/quant_scripts/signal_executor.py", "expire"],
     [PY, "/config/quant_scripts/signal_lifecycle.py", "audit"],
-    [PY, "/config/quant_scripts/risk_monitor.py", "--json"],  # GARCH+GBM+Copula已内置
-    [PY, "/config/quant_scripts/market_regime.py", "--json"],  # HMM市场状态
-    [PY, "/config/quant_scripts/stat_arb.py", "--json"],  # Q3.1: 协整统计套利
-    [PY, "/config/quant_scripts/dl_predictor.py", "--code", "000063", "--horizon", "5", "--json"],  # Q4.1: LSTM
-    [PY, "/config/quant_scripts/factor_pca.py", "--json"],  # PCA因子降维
+    [PY, "/config/quant_scripts/risk_monitor.py", "--json"],
     [PY, "/config/quant_scripts/data_health.py"],
+]
+FULL_ONLY_SCRIPTS = [
+    [PY, "/config/quant_scripts/stock_screener.py", "--top", "15", "--save", SCREENER_JSON],
+    [PY, "/config/quant_scripts/market_regime.py", "--json"],
+    [PY, "/config/quant_scripts/stat_arb.py", "--json"],
+    [PY, "/config/quant_scripts/dl_predictor.py", "--code", "000063", "--horizon", "5", "--json"],
+    [PY, "/config/quant_scripts/factor_pca.py", "--json"],
     [PY, "/config/quant_scripts/system_component_audit.py"],
     [PY, "/config/quant_scripts/cvrf_reflection.py"],
     [PY, "/config/quant_scripts/manifest_touch.py", "--cron-id", "dd8c45af9154"],
 ]
 
-NIGHT_QUANT_JSON = "/config/quant_scripts/data/night_quant.json"
+
+def _scripts() -> list[list[str]]:
+    scripts = list(BASE_SCRIPTS)
+    if TEST_MODE:
+        if not os.path.exists(SCREENER_JSON):
+            scripts.append([PY, "/config/quant_scripts/stock_screener.py", "--top", "15", "--save", SCREENER_JSON])
+        return scripts
+    scripts.extend(FULL_ONLY_SCRIPTS)
+    return scripts
 
 
 def _json_module_key(cmd: list):
@@ -69,9 +82,21 @@ def _extract_json_from_stdout(text: str):
     return None
 
 
+def _write_minimal_night_quant() -> None:
+    payload = {
+        "generated_at": datetime.now().isoformat(),
+        "modules": {},
+        "test_mode": True,
+        "source": "night_preflight:minimal",
+    }
+    with open(NIGHT_QUANT_JSON, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+
+
 def main() -> None:
+    os.makedirs(RUNTIME_DATA_DIR, exist_ok=True)
     quant_modules: dict[str, object] = {}
-    for cmd in SCRIPTS:
+    for cmd in _scripts():
         key = _json_module_key(cmd)
         try:
             r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
@@ -98,6 +123,12 @@ def main() -> None:
             print(f"[night_preflight] wrote {NIGHT_QUANT_JSON}", file=sys.stderr)
         except OSError as e:
             print(f"[night_preflight] cannot write night_quant: {e}", file=sys.stderr)
+    elif TEST_MODE and not os.path.exists(NIGHT_QUANT_JSON):
+        try:
+            _write_minimal_night_quant()
+            print(f"[night_preflight] wrote minimal {NIGHT_QUANT_JSON}", file=sys.stderr)
+        except OSError as e:
+            print(f"[night_preflight] cannot write minimal night_quant: {e}", file=sys.stderr)
 
 
 if __name__ == "__main__":
