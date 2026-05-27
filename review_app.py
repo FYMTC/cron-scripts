@@ -213,6 +213,8 @@ def main():
 
     bundle["ok"] = True
     bundle["night_output_path"] = OUT
+    bundle["strategy_validation"] = night.get("strategy_validation")
+    bundle["strategy_review"] = night.get("strategy_review")
     bundle["night_summary"] = {
         "recommendation": night.get("recommendation"),
         "holdings_count": len(night.get("holdings") or []),
