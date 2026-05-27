@@ -216,6 +216,7 @@ def main():
         "signal_auto_generate": sig,
         "explainability": explainability,
         "model_risk_ledger": model_risk_ledger,
+        "strategy_validation_record": morning.get("strategy_validation_record") or {},
     }
     with open(PLAN_JSON, "w", encoding="utf-8") as f:
         json.dump(plan, f, ensure_ascii=False, indent=2)
