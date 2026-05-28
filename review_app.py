@@ -23,6 +23,11 @@ PLAN_JSON = os.path.join(RUNTIME_DATA_DIR, "plan_bundle.json")
 TEST_MODE = bool(os.environ.get("QUANT_RUNTIME_SCENARIO") or os.environ.get("QUANT_TEST_MODE"))
 
 
+sys.path.insert(0, "/config/quant_scripts")
+
+from trade_notify import enqueue_wechat
+
+
 def _run_digest() -> dict:
     r = subprocess.run([VENV_PY, DIGEST, "night"], capture_output=True, text=True, timeout=60)
     if r.returncode != 0:
@@ -123,6 +128,21 @@ def _build_model_risk_ledger(plan_bundle: dict, feature_snapshot: dict) -> dict:
         },
         "items": items,
     }
+
+
+def _enqueue_report(body: str, report_type: str, bundle_path: str, generated_at: str) -> dict:
+    if not body.strip():
+        return {"ok": False, "skipped": True, "reason": "empty_report_body"}
+    return enqueue_wechat(
+        body,
+        kind="work_report",
+        meta={
+            "report_type": report_type,
+            "phase": "review",
+            "bundle_path": bundle_path,
+            "generated_at": generated_at,
+        },
+    )
 
 
 def main():
@@ -235,6 +255,12 @@ def main():
             " v5_self_check 失败：最终回复末尾另加③系统状态段，列出 failure_names 或 paths.missing。"
         )
     bundle["instruction"] = instr
+    bundle["wechat_enqueue"] = _enqueue_report(
+        bundle.get("wechat_work_report_body") or "",
+        bundle.get("wechat_report_type") or "②工作报告-晚复盘",
+        REVIEW_JSON,
+        str(bundle.get("generated_at") or ""),
+    )
 
     with open(REVIEW_JSON, "w", encoding="utf-8") as f:
         json.dump(bundle, f, ensure_ascii=False, indent=2)

@@ -20,6 +20,11 @@ PLAN_JSON = os.path.join(RUNTIME_DATA_DIR, "plan_bundle.json")
 FEATURE_SNAPSHOT_PATH = os.path.join(RUNTIME_DATA_DIR, "feature_snapshot.json")
 
 
+sys.path.insert(0, SCRIPTS)
+
+from trade_notify import enqueue_wechat
+
+
 def _portfolio_quant(holdings: list, limit: int = 5) -> dict:
     sys.path.insert(0, SCRIPTS)
     out = {"per_stock": {}}
@@ -139,6 +144,21 @@ def _build_model_risk_ledger(feature_snapshot: dict, quant_bundle: dict, signal_
     }
 
 
+def _enqueue_report(body: str, report_type: str, bundle_path: str, generated_at: str) -> dict:
+    if not body.strip():
+        return {"ok": False, "skipped": True, "reason": "empty_report_body"}
+    return enqueue_wechat(
+        body,
+        kind="work_report",
+        meta={
+            "report_type": report_type,
+            "phase": "plan",
+            "bundle_path": bundle_path,
+            "generated_at": generated_at,
+        },
+    )
+
+
 def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
 
@@ -230,6 +250,12 @@ def main():
     plan["instruction"] = digest.get(
         "instruction",
         "必读 wechat_work_report_body；润色扩展后作为最终回复推微信（deliver=origin）。禁止跳过 digest。",
+    )
+    plan["wechat_enqueue"] = _enqueue_report(
+        plan.get("wechat_work_report_body") or "",
+        plan.get("wechat_report_type") or "②工作报告-早计划",
+        PLAN_JSON,
+        str(plan.get("generated_at") or ""),
     )
     with open(PLAN_JSON, "w", encoding="utf-8") as f:
         json.dump(plan, f, ensure_ascii=False, indent=2)
