@@ -18,11 +18,28 @@ RUNTIME_DATA_DIR = os.environ.get("QUANT_RUNTIME_DATA_DIR") or "/config/quant_sc
 OUT = os.path.join(RUNTIME_DATA_DIR, "morning_output.json")
 PLAN_JSON = os.path.join(RUNTIME_DATA_DIR, "plan_bundle.json")
 FEATURE_SNAPSHOT_PATH = os.path.join(RUNTIME_DATA_DIR, "feature_snapshot.json")
+WIKI_REPORTS_DIR = os.environ.get("QUANT_WIKI_REPORTS_DIR") or "/config/quant-wiki/reports"
 
 
 sys.path.insert(0, SCRIPTS)
 
 from trade_notify import enqueue_wechat
+
+
+def _save_report_copy(body: str, generated_at: str, tag: str) -> None:
+    if not body or not generated_at:
+        return
+    try:
+        os.makedirs(WIKI_REPORTS_DIR, exist_ok=True)
+        date_str = generated_at[:10]
+        path = os.path.join(WIKI_REPORTS_DIR, f"{date_str}-{tag}.md")
+        label = {"morning-plan": "早报", "night-review": "夜报"}.get(tag, tag)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(f"# {label} — {generated_at[:19]}\n\n")
+            f.write(f"> 来源: {tag} bundle · {len(body)} 字符\n\n")
+            f.write(body)
+    except OSError:
+        pass
 
 
 def _portfolio_quant(holdings: list, limit: int = 5) -> dict:
@@ -256,6 +273,11 @@ def main():
         plan.get("wechat_report_type") or "②工作报告-早计划",
         PLAN_JSON,
         str(plan.get("generated_at") or ""),
+    )
+    _save_report_copy(
+        plan.get("wechat_work_report_body") or "",
+        str(plan.get("generated_at") or ""),
+        "morning-plan",
     )
     with open(PLAN_JSON, "w", encoding="utf-8") as f:
         json.dump(plan, f, ensure_ascii=False, indent=2)

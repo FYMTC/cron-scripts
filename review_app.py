@@ -20,12 +20,29 @@ OUT = os.path.join(RUNTIME_DATA_DIR, "night_output.json")
 REVIEW_JSON = os.path.join(RUNTIME_DATA_DIR, "review_bundle.json")
 FEATURE_SNAPSHOT_JSON = os.path.join(RUNTIME_DATA_DIR, "feature_snapshot.json")
 PLAN_JSON = os.path.join(RUNTIME_DATA_DIR, "plan_bundle.json")
+WIKI_REPORTS_DIR = os.environ.get("QUANT_WIKI_REPORTS_DIR") or "/config/quant-wiki/reports"
 TEST_MODE = bool(os.environ.get("QUANT_RUNTIME_SCENARIO") or os.environ.get("QUANT_TEST_MODE"))
 
 
 sys.path.insert(0, "/config/quant_scripts")
 
 from trade_notify import enqueue_wechat
+
+
+def _save_report_copy(body: str, generated_at: str, tag: str) -> None:
+    if not body or not generated_at:
+        return
+    try:
+        os.makedirs(WIKI_REPORTS_DIR, exist_ok=True)
+        date_str = generated_at[:10]
+        path = os.path.join(WIKI_REPORTS_DIR, f"{date_str}-{tag}.md")
+        label = {"morning-plan": "早报", "night-review": "夜报"}.get(tag, tag)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(f"# {label} — {generated_at[:19]}\n\n")
+            f.write(f"> 来源: {tag} bundle · {len(body)} 字符\n\n")
+            f.write(body)
+    except OSError:
+        pass
 
 
 def _run_digest() -> dict:
@@ -260,6 +277,11 @@ def main():
         bundle.get("wechat_report_type") or "②工作报告-晚复盘",
         REVIEW_JSON,
         str(bundle.get("generated_at") or ""),
+    )
+    _save_report_copy(
+        bundle.get("wechat_work_report_body") or "",
+        str(bundle.get("generated_at") or ""),
+        "night-review",
     )
 
     with open(REVIEW_JSON, "w", encoding="utf-8") as f:
