@@ -134,9 +134,9 @@ def _build_model_risk_ledger(feature_snapshot: dict, quant_bundle: dict, signal_
             "source_modules": ["event_risk"],
             "as_of": (event_risk or {}).get("assessed_at") or (feature_snapshot or {}).get("generated_at"),
             "version": (event_risk or {}).get("date") or (feature_snapshot or {}).get("as_of_date"),
-            "status": "fallback" if event_risk_snapshot.get("source") == "not_wired_yet" else "ok",
-            "degraded": event_risk_snapshot.get("source") == "not_wired_yet",
-            "fallback_reason": "not_wired_yet" if event_risk_snapshot.get("source") == "not_wired_yet" else None,
+            "status": "ok" if (event_risk or {}).get("event_level") else "fallback",
+            "degraded": not bool((event_risk or {}).get("event_level")),
+            "fallback_reason": None if (event_risk or {}).get("event_level") else "event_risk_data_missing",
         },
         {
             "name": "signal_auto_generate",

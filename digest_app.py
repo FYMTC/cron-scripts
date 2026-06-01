@@ -36,11 +36,14 @@ def _section(title: str, lines: List[str]) -> str:
 
 def _fmt_holdings(holdings: List[dict], limit: int = 12) -> List[str]:
     lines = []
+    total_value = 0.0
     for h in (holdings or [])[:limit]:
         code = h.get("code", "?")
         name = h.get("name", code)
         sh = h.get("shares", 0)
         price = h.get("price", 0)
+        mv = price * sh
+        total_value += mv
         pnl = h.get("pnl")
         pnl_pct = h.get("pnl_pct")
         extra = ""
@@ -118,6 +121,27 @@ def _fmt_explainability(plan: dict) -> List[str]:
     return lines
 
 
+def _fmt_concentration(holdings: List[dict], cash: float, total_assets: float) -> List[str]:
+    if not holdings or total_assets <= 0:
+        return []
+    lines = []
+    for h in holdings:
+        code = h.get("code", "?")
+        name = h.get("name", code)
+        sh = h.get("shares", 0)
+        price = h.get("price", 0)
+        mv = price * sh
+        pct = mv / total_assets * 100 if total_assets > 0 else 0
+        flag = "🔴" if pct > 50 else ("🟡" if pct > 20 else "✅")
+        lines.append(f"- {flag} {name}({code}): {sh}股 × ¥{price} = ¥{mv:,.0f} → **{pct:.1f}%**")
+    cash_pct = cash / total_assets * 100 if total_assets > 0 else 0
+    lines.append(f"- 💵 现金: ¥{cash:,.0f} ({cash_pct:.1f}%)")
+    over_20 = [h for h in holdings if (h.get("price", 0) * h.get("shares", 0)) / total_assets > 0.20]
+    if over_20:
+        lines.append(f"- ⛔ **单标超标(>20%)**: {len(over_20)} 只，须优先评估减仓")
+    return lines
+
+
 def _fmt_model_risk(plan_or_review: dict) -> List[str]:
     ledger = (plan_or_review or {}).get("model_risk_ledger") or {}
     summary = ledger.get("summary") or {}
@@ -156,7 +180,11 @@ def morning_digest() -> dict:
         f"仓位 {m.get('position_ratio_pct', '?')}%",
     ]
 
-    parts.append(_section("持仓", _fmt_holdings(m.get("holdings") or [])))
+    holdings = m.get("holdings") or []
+    parts.append(_section("持仓", _fmt_holdings(holdings)))
+    cash = m.get("cash") or 0
+    total = m.get("total_assets") or 0
+    parts.append(_section("集中度分析", _fmt_concentration(holdings, cash, total)))
     parts.append(_section("硬约束", _fmt_constraints(constraints)))
     parts.append(_section("解释层（为什么暂不放行）", _fmt_explainability(plan)))
     parts.append(_section("模型风险台账", _fmt_model_risk(plan)))
@@ -240,10 +268,24 @@ def night_digest() -> dict:
     summary = audit.get("summary") or {}
     night = n or {}
 
+    # ── Holdings: prefer night_output, fallback to feature_snapshot ──
+    holdings = night.get("holdings") or []
+    cash = night.get("cash", 0)
+    total = night.get("total_assets", 0)
+    if not holdings:
+        # Try reading morning_output for the latest holdings snapshot
+        morning = _load("morning_output.json")
+        holdings = morning.get("holdings") or []
+        cash = morning.get("cash", cash)
+        total = morning.get("total_assets", total)
+
     parts = [
         f"【②工作报告-晚复盘】{datetime.now().strftime('%Y-%m-%d %H:%M')}",
         f"**收盘建议**: {night.get('recommendation', r.get('night_summary', {}).get('recommendation', '?'))}",
     ]
+
+    if total > 0 and cash > 0:
+        parts.append(f"现金 ¥{cash:,.0f} | 总资产 ¥{total:,.0f} | 仓位 {(1-cash/total)*100 if total>0 else 0:.1f}%")
 
     pnl = night.get("pnl_summary") or {}
     if pnl:
@@ -258,9 +300,31 @@ def night_digest() -> dict:
             )
         )
 
-    parts.append(_section("收盘持仓", _fmt_holdings(night.get("holdings") or [])))
+    parts.append(_section("收盘持仓", _fmt_holdings(holdings)))
+    parts.append(_section("集中度分析", _fmt_concentration(holdings, cash, total)))
     parts.append(_section("账户运行态", _fmt_account_runtime(r)))
-    parts.append(_section("拒单 / 约束主因", _fmt_explainability(r)))
+
+    # ── De-risk / blocked opportunities ──
+    de_risk = night.get("de_risk_plan") or morning.get("de_risk_plan") or {}
+    dr_actions = de_risk.get("actions") or []
+    if dr_actions:
+        lines = [f"- de_risk_plan 包含 {len(dr_actions)} 笔减仓候选:"]
+        for a in dr_actions[:5]:
+            lines.append(f"  · {a.get('name')}({a.get('code')}) SELL {a.get('shares')}股 — {a.get('reason', '')[:60]}")
+        parts.append(_section("组合减仓计划", lines))
+
+    # ── Strategy validation ──
+    sv = night.get("strategy_validation") or {}
+    if sv:
+        parts.append(_section("策略验证", [
+            f"- 待验证候选: {sv.get('pending_candidates', sv.get('candidates_count', '?'))} 只",
+        ]))
+
+    # ── CVRF reflection ──
+    cvrf = r.get("cvrf_stdout_preview") or ""
+    if cvrf and len(cvrf) > 50:
+        parts.append(_section("CVRF 反思", [f"- {cvrf[:300]}" + ("…" if len(cvrf) > 300 else "")]))
+
     parts.append(_section("模型风险台账", _fmt_model_risk(r)))
     parts.append(_section("宏观 / 地缘 (R2)", _fmt_event_risk(night)))
 
@@ -278,19 +342,10 @@ def night_digest() -> dict:
 
     sc = r.get("steps", {}).get("v5_self_check") or {}
     if sc:
-        parts.append(
-            _section(
-                "系统自检",
-                [
-                    f"- v5_self_check: {'PASS' if sc.get('ok') else 'FAIL'}",
-                ]
-                + (
-                    [f"- 失败项: {', '.join((sc.get('checks', {}).get('unittest', {}).get('failure_names') or [])[:5])}"]
-                    if not sc.get("ok")
-                    else []
-                ),
-            )
-        )
+        ok_lines = [f"- v5_self_check: {'PASS' if sc.get('ok') else 'FAIL'}"]
+        if not sc.get("ok"):
+            ok_lines.append(f"- 失败项: {', '.join((sc.get('checks', {}).get('unittest', {}).get('failure_names') or [])[:5])}")
+        parts.append(_section("系统自检", ok_lines))
 
     cands = night.get("candidates") or []
     if cands:
@@ -300,7 +355,8 @@ def night_digest() -> dict:
         "\n### 复盘要点\n"
         "- 将可复用教训写入 stock_kb insights（供明日 Plan/Desk）。\n"
         "- 假突破/冲顶未止盈等须写清标的与日期。\n"
-        "- 明日盘前先读 screener_top15 + cron_state 宏观档位。"
+        "- 明日盘前先读 screener_top15 + cron_state 宏观档位。\n"
+        "- 若存在 de_risk_plan 减仓候选：明日 agent_desk 将自动生成 SELL 请示，无需人工判断。"
     )
 
     text = "\n".join(p for p in parts if p).strip()
