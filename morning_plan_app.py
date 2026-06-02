@@ -268,7 +268,7 @@ def main():
         "instruction",
         "必读 wechat_work_report_body；润色扩展后作为最终回复推微信（deliver=origin）。禁止跳过 digest。",
     )
-    plan["wechat_enqueue"] = _enqueue_report(
+    enqueue_result = _enqueue_report(
         plan.get("wechat_work_report_body") or "",
         plan.get("wechat_report_type") or "②工作报告-早计划",
         PLAN_JSON,
@@ -279,6 +279,14 @@ def main():
         str(plan.get("generated_at") or ""),
         "morning-plan",
     )
+    plan["wechat_enqueue"] = {
+        "ok": enqueue_result.get("ok"),
+        "queued": enqueue_result.get("queued"),
+        "kind": enqueue_result.get("kind"),
+        "native_ok": (enqueue_result.get("native_send") or {}).get("ok"),
+        "webhook_ok": enqueue_result.get("webhook_sent", False),
+        "at": enqueue_result.get("at"),
+    }
     with open(PLAN_JSON, "w", encoding="utf-8") as f:
         json.dump(plan, f, ensure_ascii=False, indent=2)
     plan["plan_bundle_path"] = PLAN_JSON

@@ -272,7 +272,7 @@ def main():
             " v5_self_check 失败：最终回复末尾另加③系统状态段，列出 failure_names 或 paths.missing。"
         )
     bundle["instruction"] = instr
-    bundle["wechat_enqueue"] = _enqueue_report(
+    enqueue_result = _enqueue_report(
         bundle.get("wechat_work_report_body") or "",
         bundle.get("wechat_report_type") or "②工作报告-晚复盘",
         REVIEW_JSON,
@@ -283,6 +283,14 @@ def main():
         str(bundle.get("generated_at") or ""),
         "night-review",
     )
+    bundle["wechat_enqueue"] = {
+        "ok": enqueue_result.get("ok"),
+        "queued": enqueue_result.get("queued"),
+        "kind": enqueue_result.get("kind"),
+        "native_ok": (enqueue_result.get("native_send") or {}).get("ok"),
+        "webhook_ok": enqueue_result.get("webhook_sent", False),
+        "at": enqueue_result.get("at"),
+    }
 
     with open(REVIEW_JSON, "w", encoding="utf-8") as f:
         json.dump(bundle, f, ensure_ascii=False, indent=2)
