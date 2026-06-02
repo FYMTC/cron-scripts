@@ -268,10 +268,11 @@ def night_digest() -> dict:
     summary = audit.get("summary") or {}
     night = n or {}
 
-    # ── Holdings: prefer night_output, fallback to feature_snapshot ──
+    # ── Holdings: prefer night_output, fallback to morning_output ──
     holdings = night.get("holdings") or []
     cash = night.get("cash", 0)
     total = night.get("total_assets", 0)
+    morning = {}
     if not holdings:
         # Try reading morning_output for the latest holdings snapshot
         morning = _load("morning_output.json")
