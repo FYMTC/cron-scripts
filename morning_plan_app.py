@@ -23,8 +23,6 @@ WIKI_REPORTS_DIR = os.environ.get("QUANT_WIKI_REPORTS_DIR") or "/config/quant-wi
 
 sys.path.insert(0, SCRIPTS)
 
-from trade_notify import enqueue_wechat
-
 
 def _save_report_copy(body: str, generated_at: str, tag: str) -> None:
     if not body or not generated_at:
@@ -161,21 +159,6 @@ def _build_model_risk_ledger(feature_snapshot: dict, quant_bundle: dict, signal_
     }
 
 
-def _enqueue_report(body: str, report_type: str, bundle_path: str, generated_at: str) -> dict:
-    if not body.strip():
-        return {"ok": False, "skipped": True, "reason": "empty_report_body"}
-    return enqueue_wechat(
-        body,
-        kind="work_report",
-        meta={
-            "report_type": report_type,
-            "phase": "plan",
-            "bundle_path": bundle_path,
-            "generated_at": generated_at,
-        },
-    )
-
-
 def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
 
@@ -264,28 +247,40 @@ def main():
     plan["push_wechat_required"] = bool(digest.get("push_wechat_required", True))
     plan["wechat_report_type"] = digest.get("wechat_report_type", "②工作报告-早计划")
     plan["needs_hermes"] = True
+
+    # ── webhook URL for Hermes to deliver the final report ──
+    webhook_url = os.environ.get("WECHAT_WEBHOOK_URL", "")
+    if not webhook_url:
+        try:
+            with open("/config/.hermes/.env") as f:
+                for line in f:
+                    if line.startswith("WECHAT_WEBHOOK_URL="):
+                        webhook_url = line.split("=", 1)[1].strip()
+        except Exception:
+            pass
+    plan["webhook_url"] = webhook_url or ""
+
     plan["instruction"] = digest.get(
         "instruction",
-        "必读 wechat_work_report_body；润色扩展后作为最终回复推微信（deliver=origin）。禁止跳过 digest。",
+        "必读 wechat_work_report_body；润色扩展后作为最终回复。禁止跳过 digest。",
     )
-    enqueue_result = _enqueue_report(
-        plan.get("wechat_work_report_body") or "",
-        plan.get("wechat_report_type") or "②工作报告-早计划",
-        PLAN_JSON,
-        str(plan.get("generated_at") or ""),
+    plan["instruction"] += (
+        " 报告写完后，用 curl 发送到 plan.webhook_url（企业微信 Webhook），"
+        "格式：{\"msgtype\":\"markdown\",\"markdown\":{\"content\":\"<你的完整报告>\"}}。"
+        "禁止用 send_message 推微信原生通道。报告仅推企业微信。"
     )
+
+    # Wiki 存档用 digest 原文（Hermes 加工后的版本由 Hermes 自行存档）
     _save_report_copy(
         plan.get("wechat_work_report_body") or "",
         str(plan.get("generated_at") or ""),
         "morning-plan",
     )
     plan["wechat_enqueue"] = {
-        "ok": enqueue_result.get("ok"),
-        "queued": enqueue_result.get("queued"),
-        "kind": enqueue_result.get("kind"),
-        "native_ok": (enqueue_result.get("native_send") or {}).get("ok"),
-        "webhook_ok": enqueue_result.get("webhook_sent", False),
-        "at": enqueue_result.get("at"),
+        "ok": True,
+        "queued": False,
+        "note": "Hermes delivers final report to webhook; raw digest archived to wiki only",
+        "webhook_url_configured": bool(webhook_url),
     }
     with open(PLAN_JSON, "w", encoding="utf-8") as f:
         json.dump(plan, f, ensure_ascii=False, indent=2)

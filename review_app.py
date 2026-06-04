@@ -26,8 +26,6 @@ TEST_MODE = bool(os.environ.get("QUANT_RUNTIME_SCENARIO") or os.environ.get("QUA
 
 sys.path.insert(0, "/config/quant_scripts")
 
-from trade_notify import enqueue_wechat
-
 
 def _save_report_copy(body: str, generated_at: str, tag: str) -> None:
     if not body or not generated_at:
@@ -145,21 +143,6 @@ def _build_model_risk_ledger(plan_bundle: dict, feature_snapshot: dict) -> dict:
         },
         "items": items,
     }
-
-
-def _enqueue_report(body: str, report_type: str, bundle_path: str, generated_at: str) -> dict:
-    if not body.strip():
-        return {"ok": False, "skipped": True, "reason": "empty_report_body"}
-    return enqueue_wechat(
-        body,
-        kind="work_report",
-        meta={
-            "report_type": report_type,
-            "phase": "review",
-            "bundle_path": bundle_path,
-            "generated_at": generated_at,
-        },
-    )
 
 
 def main():
