@@ -203,6 +203,25 @@ def morning_digest() -> dict:
             )
         )
 
+    # ── deployment plan ──
+    dp = m.get("deployment_plan") or {}
+    if dp:
+        dp_lines = [
+            f"- 事件级别: **{dp.get('event_level', '?')}** → {dp.get('tier_description', '')}",
+            f"- 目标仓位: ≤{dp.get('target_exposure_pct', '?')}% (可部署 ¥{dp.get('deployable_cash', 0):,.0f})",
+            f"- 当前仓位: {dp.get('current_exposure_pct', '?')}%",
+        ]
+        gap = dp.get("deployment_gap", 0)
+        if gap and gap > 0:
+            dp_lines.append(f"- 部署缺口: ¥{gap:,.0f}")
+        dp_lines.append(f"- 预留现金: ¥{dp.get('reserve_cash', 0):,.0f} ({dp.get('min_cash_pct', dp.get('event_level','') and 20)}%下限)")
+        blocked = dp.get("candidates_blocked") or []
+        if blocked:
+            dp_lines.append(f"- 候选筛选: {dp.get('candidates_considered','?')} 个候选，{dp.get('candidates_passed','?')} 个通过，{len(blocked)} 个被拒")
+            for b in blocked[:5]:
+                dp_lines.append(f"  · {b.get('code')}: {', '.join(b.get('reasons', [])[:3])}")
+        parts.append(_section("仓位部署计划", dp_lines))
+
     parts.append(_section("昨夜选股 Top 候选", _fmt_candidates(cands)))
     if sig:
         parts.append(
