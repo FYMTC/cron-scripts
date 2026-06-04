@@ -263,33 +263,46 @@ def main():
     bundle["push_wechat_required"] = bool(digest.get("push_wechat_required", True))
     bundle["wechat_report_type"] = digest.get("wechat_report_type", "②工作报告-晚复盘")
     bundle["needs_hermes"] = True
+
+    # ── webhook URL for Hermes to deliver the final report ──
+    webhook_url = os.environ.get("WECHAT_WEBHOOK_URL", "")
+    if not webhook_url:
+        try:
+            with open("/config/.hermes/.env") as f:
+                for line in f:
+                    if line.startswith("WECHAT_WEBHOOK_URL="):
+                        webhook_url = line.split("=", 1)[1].strip()
+        except Exception:
+            pass
+    bundle["webhook_url"] = webhook_url or ""
+
     instr = digest.get(
         "instruction",
-        "以 wechat_work_report_body 为底稿写详细晚复盘；deliver=origin 自动推微信。",
+        "以 wechat_work_report_body 为底稿写详细晚复盘。",
+    )
+    # 推送指令：企业微信 webhook，不再推微信
+    instr += (
+        " 报告写完后，用 curl 发送到 bundle.webhook_url（企业微信 Webhook），"
+        "格式：{\"msgtype\":\"markdown\",\"markdown\":{\"content\":\"<你的完整报告>\"}}。"
+        "禁止用 send_message 推微信原生通道。报告仅推企业微信。"
     )
     if not bundle.get("v5_self_check_ok", True):
         instr += (
-            " v5_self_check 失败：最终回复末尾另加③系统状态段，列出 failure_names 或 paths.missing。"
+            " 最终回复末尾另加③系统状态段，列出 failure_names 或 paths.missing。"
         )
     bundle["instruction"] = instr
-    enqueue_result = _enqueue_report(
-        bundle.get("wechat_work_report_body") or "",
-        bundle.get("wechat_report_type") or "②工作报告-晚复盘",
-        REVIEW_JSON,
-        str(bundle.get("generated_at") or ""),
-    )
+
+    # Wiki 存档用 digest 原文（Hermes 加工后的版本由 Hermes 自行存档）
     _save_report_copy(
         bundle.get("wechat_work_report_body") or "",
         str(bundle.get("generated_at") or ""),
         "night-review",
     )
     bundle["wechat_enqueue"] = {
-        "ok": enqueue_result.get("ok"),
-        "queued": enqueue_result.get("queued"),
-        "kind": enqueue_result.get("kind"),
-        "native_ok": (enqueue_result.get("native_send") or {}).get("ok"),
-        "webhook_ok": enqueue_result.get("webhook_sent", False),
-        "at": enqueue_result.get("at"),
+        "ok": True,
+        "queued": False,
+        "note": "Hermes delivers final report to webhook; raw digest archived to wiki only",
+        "webhook_url_configured": bool(webhook_url),
     }
     try:
         from strategy_optimizer import build_optimization_report
