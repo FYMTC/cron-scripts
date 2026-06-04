@@ -10,6 +10,8 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List
 
+sys.path.insert(0, "/config/quant_scripts")
+
 DATA = "/config/quant_scripts/data"
 # 单条微信建议上限（字符）；底稿可更长，Hermes 润色时可拆条
 SOFT_MAX_CHARS = 6000
@@ -339,6 +341,28 @@ def night_digest() -> dict:
         parts.append(_section("策略验证", [
             f"- 待验证候选: {sv.get('pending_candidates', sv.get('candidates_count', '?'))} 只",
         ]))
+    # ── Blocked opportunity & strategy performance ──
+    try:
+        from strategy_validation import summarize_validation
+        vs = summarize_validation()
+        if vs:
+            vs_lines = [
+                f"- 历史候选: {vs.get('candidate_count', '?')} 只，已验证 {vs.get('measured_count', '?')} 只",
+                f"- 命中率: {vs.get('hit_rate', 0)*100:.0f}% (次日收涨比例)",
+                f"- 平均收益: {vs.get('avg_return_pct_close', 0):+.1f}% (次日收盘)",
+            ]
+            bpc = vs.get('blocked_positive_count', 0)
+            bpc_codes = vs.get('blocked_positive_codes', [])
+            if bpc and bpc_codes:
+                vs_lines.append(f"- **⛔ 错失机会**: {bpc} 只被拒候选次日上涨 {', '.join(bpc_codes[:5])}")
+                vs_lines.append(f"  （这些是被风控拦截但次日实际表现好的标的，考虑放宽对应因子阈值）")
+            by_strat = vs.get('by_strategy', [])
+            if by_strat:
+                for bs in by_strat[:3]:
+                    vs_lines.append(f"- {bs.get('strategy_id')}: {bs.get('total')}选 {bs.get('wins')}赢 {bs.get('blocked_positive')}错失")
+            parts.append(_section("策略绩效 & 错失归因", vs_lines))
+    except Exception:
+        pass
 
     # ── CVRF reflection ──
     cvrf = r.get("cvrf_stdout_preview") or ""

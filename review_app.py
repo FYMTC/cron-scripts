@@ -291,6 +291,15 @@ def main():
         "webhook_ok": enqueue_result.get("webhook_sent", False),
         "at": enqueue_result.get("at"),
     }
+    try:
+        from strategy_optimizer import build_optimization_report
+        opt = build_optimization_report()
+        bundle["optimization_report"] = {
+            "path": "/config/quant_scripts/data/optimization_report.json",
+            "recommendations": len(opt.get("recommendations", [])),
+        }
+    except Exception:
+        pass
 
     with open(REVIEW_JSON, "w", encoding="utf-8") as f:
         json.dump(bundle, f, ensure_ascii=False, indent=2)
