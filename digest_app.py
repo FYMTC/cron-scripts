@@ -95,7 +95,8 @@ def _fmt_event_risk(m: dict) -> List[str]:
 
 
 def _fmt_forward_events() -> List[str]:
-    """读取前瞻事件日历，列出未来 14 天内即将进入窗口的风险事件。"""
+    """读取前瞻事件日历，列出未来 14 天内即将进入窗口的风险事件
+    以及仍在衰减期内的已发生事件。"""
     import json as _json
     from datetime import date as _date, timedelta as _td
 
@@ -109,6 +110,7 @@ def _fmt_forward_events() -> List[str]:
     today = _date.today()
     cutoff = today + _td(days=14)
     upcoming = []
+    in_decay_list = []
     for ev in events:
         if not ev.get("active", True):
             continue
@@ -116,15 +118,19 @@ def _fmt_forward_events() -> List[str]:
             event_date = _date.fromisoformat(ev["date"])
         except (ValueError, KeyError):
             continue
+        decay = int(ev.get("decay_days", 0))
+        decay_end = event_date + _td(days=decay)
+        days_until = (event_date - today).days
+        lead = int(ev.get("lead_days", 0))
+        in_window = days_until <= lead
+
         if today <= event_date <= cutoff:
-            days_until = (event_date - today).days
-            lead = int(ev.get("lead_days", 0))
-            in_window = days_until <= lead
             upcoming.append((event_date, days_until, lead, in_window, ev))
-    if not upcoming:
-        return []
-    upcoming.sort(key=lambda x: x[0])
+        elif event_date < today <= decay_end:
+            in_decay_list.append((event_date, days_until, decay, decay_end, ev))
+
     lines: List[str] = []
+    upcoming.sort(key=lambda x: x[0])
     for event_date, days_until, lead, in_window, ev in upcoming:
         marker = "🔴 窗口内" if in_window else "🟡 临近"
         lines.append(
@@ -139,6 +145,61 @@ def _fmt_forward_events() -> List[str]:
             lines.append(f"  影响板块: {', '.join(sectors[:5])}")
         if in_window and ev.get("suggested_tier"):
             lines.append(f"  → 建议档位: **{ev['suggested_tier']}**，生效中")
+        if ev.get("decay_days", 0) > 0:
+            dl = ev.get("decay_level") or "NORMAL"
+            lines.append(f"  → 事后衰减 {ev['decay_days']}天 @ {dl}")
+
+    # 衰减期中的已发生事件
+    if in_decay_list:
+        lines.append(f"")
+        lines.append(f"**衰减中（已发生，余震仍在）**：")
+        in_decay_list.sort(key=lambda x: x[0])
+        for event_date, days_until, decay, decay_end, ev in in_decay_list:
+            days_since = -days_until
+            remaining = (decay_end - today).days
+            dl = ev.get("decay_level") or "NORMAL"
+            lines.append(
+                f"- 🟠 **{ev['date']}** ({days_since}天前): {ev.get('title', '')}"
+                f" — 余震 {remaining}天 @ {dl}"
+            )
+    return lines
+
+
+def _fmt_expired_for_review() -> List[str]:
+    """列出已完全过期等待 Hermes 审查的事件。"""
+    import json as _json
+    from datetime import date as _date, timedelta as _td
+
+    fwd_path = "/config/quant_scripts/data/event_calendar_forward.json"
+    try:
+        with open(fwd_path, encoding="utf-8") as f:
+            fwd = _json.load(f)
+    except Exception:
+        return []
+    events = fwd.get("events") or []
+    today = _date.today()
+    expired = []
+    for ev in events:
+        if not ev.get("active", True):
+            continue
+        try:
+            event_date = _date.fromisoformat(ev["date"])
+        except (ValueError, KeyError):
+            continue
+        decay = int(ev.get("decay_days", 0))
+        decay_end = event_date + _td(days=decay)
+        if today > decay_end:
+            expired.append(ev)
+    if not expired:
+        return []
+    lines = [f"以下 {len(expired)} 个事件已过衰减期，需要 AI 判断：**停用**还是**延长**："]
+    for ev in expired:
+        lines.append(
+            f"- `{ev['id']}`: {ev.get('date')} {ev.get('title', '')}"
+            f" — 原级别 {ev.get('risk_level','?')}，衰减 {ev.get('decay_days', 0)}天已过"
+        )
+    lines.append("> Hermes 评估：若影响已消退 → active=false；若余震仍在 → 延长 decay_days。")
+    lines.append("> 用 `/config/quant_env/bin/python3 -c \"...\"` 直接修改 JSON。")
     return lines
 
 
@@ -425,6 +486,9 @@ def night_digest() -> dict:
     fwd_events2 = _fmt_forward_events()
     if fwd_events2:
         parts.append(_section("🗓 前瞻风险日历（未来14天）", fwd_events2))
+    expired_review = _fmt_expired_for_review()
+    if expired_review:
+        parts.append(_section("🧹 过期事件审查（Hermes 判断）", expired_review))
 
     if summary:
         parts.append(
