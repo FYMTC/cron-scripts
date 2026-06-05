@@ -94,6 +94,54 @@ def _fmt_event_risk(m: dict) -> List[str]:
     return lines
 
 
+def _fmt_forward_events() -> List[str]:
+    """读取前瞻事件日历，列出未来 14 天内即将进入窗口的风险事件。"""
+    import json as _json
+    from datetime import date as _date, timedelta as _td
+
+    fwd_path = "/config/quant_scripts/data/event_calendar_forward.json"
+    try:
+        with open(fwd_path, encoding="utf-8") as f:
+            fwd = _json.load(f)
+    except Exception:
+        return []
+    events = fwd.get("events") or []
+    today = _date.today()
+    cutoff = today + _td(days=14)
+    upcoming = []
+    for ev in events:
+        if not ev.get("active", True):
+            continue
+        try:
+            event_date = _date.fromisoformat(ev["date"])
+        except (ValueError, KeyError):
+            continue
+        if today <= event_date <= cutoff:
+            days_until = (event_date - today).days
+            lead = int(ev.get("lead_days", 0))
+            in_window = days_until <= lead
+            upcoming.append((event_date, days_until, lead, in_window, ev))
+    if not upcoming:
+        return []
+    upcoming.sort(key=lambda x: x[0])
+    lines: List[str] = []
+    for event_date, days_until, lead, in_window, ev in upcoming:
+        marker = "🔴 窗口内" if in_window else "🟡 临近"
+        lines.append(
+            f"- {marker} **{ev['date']}** ({days_until}天后): {ev.get('title', '')}"
+            f" — 风险级别 {ev.get('risk_level','?')}"
+        )
+        desc = ev.get("description", "")
+        if desc:
+            lines.append(f"  > {desc[:120]}{'…' if len(desc) > 120 else ''}")
+        sectors = ev.get("affected_sectors", [])
+        if sectors:
+            lines.append(f"  影响板块: {', '.join(sectors[:5])}")
+        if in_window and ev.get("suggested_tier"):
+            lines.append(f"  → 建议档位: **{ev['suggested_tier']}**，生效中")
+    return lines
+
+
 def _fmt_candidates(cands: List[dict], limit: int = 8) -> List[str]:
     lines = []
     for i, c in enumerate((cands or [])[:limit], 1):
@@ -191,6 +239,9 @@ def morning_digest() -> dict:
     parts.append(_section("解释层（为什么暂不放行）", _fmt_explainability(plan)))
     parts.append(_section("模型风险台账", _fmt_model_risk(plan)))
     parts.append(_section("宏观 / 地缘 (R2)", _fmt_event_risk(m)))
+    fwd_events = _fmt_forward_events()
+    if fwd_events:
+        parts.append(_section("🗓 前瞻风险日历（未来14天）", fwd_events))
 
     qs = m.get("quant_summary") or {}
     if qs:
@@ -371,6 +422,9 @@ def night_digest() -> dict:
 
     parts.append(_section("模型风险台账", _fmt_model_risk(r)))
     parts.append(_section("宏观 / 地缘 (R2)", _fmt_event_risk(night)))
+    fwd_events2 = _fmt_forward_events()
+    if fwd_events2:
+        parts.append(_section("🗓 前瞻风险日历（未来14天）", fwd_events2))
 
     if summary:
         parts.append(
