@@ -199,7 +199,10 @@ def main():
     night = {}
     if os.path.isfile(OUT):
         with open(OUT, encoding="utf-8") as f:
-            night = json.load(f)
+            raw = f.read()
+        night = _extract_json_object(raw) or {}
+        if not night:
+            sys.stderr.write(f"review_app: failed to parse night_output.json ({len(raw)} bytes)\n")
 
     feature_snapshot = {}
     if os.path.isfile(FEATURE_SNAPSHOT_JSON):
