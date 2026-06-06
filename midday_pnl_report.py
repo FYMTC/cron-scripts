@@ -57,8 +57,8 @@ def _send_webhook(body: str) -> bool:
 
 
 def main():
-    from trade_account_context import load_portfolio_truth
-    from market_data import fetch_quotes_batch
+    from trade_account_context import load_portfolio_truth  # type: ignore[import-not-found]
+    from market_data import fetch_quotes_batch  # type: ignore[import-not-found]
 
     pf = load_portfolio_truth()
     positions = pf.get("positions", {})
@@ -132,8 +132,8 @@ def main():
 
     # ── check EasyTHS live server open orders (2026-06-06: live_easyths 替代 paper) ──
     try:
-        import ths_trade_executor as ex
-        from trade_accounts import desk_primary_account, get_account
+        import ths_trade_executor as ex  # type: ignore[import-not-found]
+        from trade_accounts import desk_primary_account, get_account  # type: ignore[import-not-found]
 
         acct_id = desk_primary_account() or "live_easyths"
         acct = get_account(acct_id) or {}
