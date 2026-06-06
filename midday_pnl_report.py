@@ -130,17 +130,28 @@ def main():
         if pct > 20:
             lines.append(f"⚠️ {code} 集中度 {pct:.1f}% 超过 20% 红线")
 
-    # ── check EasyTHS server paper account state ──
+    # ── check EasyTHS live server open orders (2026-06-06: live_easyths 替代 paper) ──
     try:
-        paper_path = "/config/easyths/paper_account.json"
-        if os.path.isfile(paper_path):
-            with open(paper_path, encoding="utf-8") as f:
-                paper = json.load(f)
-            pending = len(paper.get("orders", []))
-            if pending > 0:
-                lines.append(f"\n⚠️ EasyTHS 有 {pending} 笔挂单未成交")
-    except Exception:
-        pass
+        import ths_trade_executor as ex
+        from trade_accounts import desk_primary_account, get_account
+
+        acct_id = desk_primary_account() or "live_easyths"
+        acct = get_account(acct_id) or {}
+        eas_cfg_path = (acct.get("execution") or {}).get("easyths_config")
+        if not eas_cfg_path:
+            raise RuntimeError(f"account {acct_id} has no easyths_config")
+        cfg = ex.load_trade_config(eas_cfg_path)
+        client = ex.build_client(cfg)
+        resp = client.query_orders() or {}
+        orders = ((resp.get("data") or {}).get("orders")) or []
+        pending = sum(
+            1 for o in orders
+            if isinstance(o, dict) and str(o.get("status", "")).lower() not in ("已成", "已撤", "部撤")
+        )
+        if pending > 0:
+            lines.append(f"\n⚠️ EasyTHS live 有 {pending} 笔挂单未成交")
+    except Exception as exc:
+        print(f"[midday] WARN live order_query failed: {exc}", file=__import__("sys").stderr)
 
     body = "\n".join(lines)
     ok = _send_webhook(body)
