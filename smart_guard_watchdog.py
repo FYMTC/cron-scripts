@@ -16,7 +16,7 @@ from zoneinfo import ZoneInfo
 GUARD_PY = "/config/quant_scripts/smart_guard_v3.py"
 GUARD_LOG = "/config/quant_scripts/guard_daemon.log"
 HEARTBEAT_FILE = "/config/quant_scripts/guard_heartbeat.txt"
-PYTHON = "/config/quant_env/bin/python"
+PYTHON = "/config/quant_env/bin/python3"
 # 主循环约 30s/轮；超过该阈值视为无有效心跳
 STALE_HEARTBEAT_SEC = 150
 
