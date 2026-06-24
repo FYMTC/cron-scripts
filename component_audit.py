@@ -1,9 +1,11 @@
 #!/usr/local/bin/python3
 """系统组件审计 + HARNESS 前置"""
 import subprocess, sys
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
-HARNESS = "/config/.hermes/scripts/hermes_harness_preflight.py"
-AUDIT = "/config/quant_scripts/system_component_audit.py"
+HARNESS = cfg.system.hermes_root + "/scripts/hermes_harness_preflight.py"
+AUDIT = cfg.root + "/system_component_audit.py"
 PYTHON = "/usr/local/bin/python3"
 
 r = subprocess.run([PYTHON, HARNESS], capture_output=True, text=True, timeout=30)

@@ -9,10 +9,12 @@ import os
 import sys
 from datetime import datetime
 from typing import Any, Dict, List
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
-sys.path.insert(0, "/config/quant_scripts")
+sys.path.insert(0, cfg.root)
 
-DATA = "/config/quant_scripts/data"
+DATA = cfg.data_dir
 # 单条微信建议上限（字符）；底稿可更长，Hermes 润色时可拆条
 SOFT_MAX_CHARS = 6000
 
@@ -100,7 +102,7 @@ def _fmt_forward_events() -> List[str]:
     import json as _json
     from datetime import date as _date, timedelta as _td
 
-    fwd_path = "/config/quant_scripts/data/event_calendar_forward.json"
+    fwd_path = cfg.path.event_calendar_forward
     try:
         with open(fwd_path, encoding="utf-8") as f:
             fwd = _json.load(f)
@@ -170,7 +172,7 @@ def _fmt_expired_for_review() -> List[str]:
     import json as _json
     from datetime import date as _date, timedelta as _td
 
-    fwd_path = "/config/quant_scripts/data/event_calendar_forward.json"
+    fwd_path = cfg.path.event_calendar_forward
     try:
         with open(fwd_path, encoding="utf-8") as f:
             fwd = _json.load(f)

@@ -10,10 +10,12 @@ import sys
 from datetime import datetime
 
 VENV_PY = "/usr/local/bin/python3"
-SCRIPTS = "/config/quant_scripts"
+SCRIPTS = cfg.root
 sys.path.insert(0, SCRIPTS)
 
 import agent_desk_config as adc  # noqa: E402
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
 DESK = os.path.join(SCRIPTS, "agent_desk.py")
 

@@ -7,18 +7,20 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
 VENV_PY = "/usr/local/bin/python3"
-SCRIPTS = "/config/quant_scripts"
-MORNING = "/config/quant_scripts/apps/morning.py"
-SIGNAL_LOOP = "/config/quant_scripts/signal_loop.py"
-FEATURE_SNAPSHOT = "/config/quant_scripts/feature_snapshot.py"
+SCRIPTS = cfg.root
+MORNING = cfg.path.apps_dir + "/morning.py"
+SIGNAL_LOOP = cfg.root + "/signal_loop.py"
+FEATURE_SNAPSHOT = cfg.root + "/feature_snapshot.py"
 DIGEST = os.path.join(os.path.dirname(__file__), "digest_app.py")
-RUNTIME_DATA_DIR = os.environ.get("QUANT_RUNTIME_DATA_DIR") or "/config/quant_scripts/data"
+RUNTIME_DATA_DIR = cfg.data_dir
 OUT = os.path.join(RUNTIME_DATA_DIR, "morning_output.json")
 PLAN_JSON = os.path.join(RUNTIME_DATA_DIR, "plan_bundle.json")
 FEATURE_SNAPSHOT_PATH = os.path.join(RUNTIME_DATA_DIR, "feature_snapshot.json")
-WIKI_REPORTS_DIR = os.environ.get("QUANT_WIKI_REPORTS_DIR") or "/config/quant-wiki/reports"
+WIKI_REPORTS_DIR = cfg.path.wiki_reports_dir
 
 
 sys.path.insert(0, SCRIPTS)
@@ -252,7 +254,7 @@ def main():
     webhook_url = os.environ.get("WECHAT_WEBHOOK_URL", "")
     if not webhook_url:
         try:
-            with open("/config/.hermes/.env") as f:
+            with open(cfg.path.hermes_env) as f:
                 for line in f:
                     if line.startswith("WECHAT_WEBHOOK_URL="):
                         webhook_url = line.split("=", 1)[1].strip()

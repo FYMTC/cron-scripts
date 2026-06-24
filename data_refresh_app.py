@@ -8,12 +8,13 @@ import os
 import subprocess
 import sys
 
-VENV_PY = "/usr/local/bin/python3"
-BASE = "/config/quant_scripts/apps"
-DATA = "/config/quant_scripts/data"
+sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
+from cron_refresh_config import EMERGENCY_FILE, EMERGENCY_SIGNAL
 
-sys.path.insert(0, "/config/quant_scripts")
-from cron_refresh_config import EMERGENCY_FILE, EMERGENCY_SIGNAL  # noqa: E402
+VENV_PY = cfg.python
+BASE = cfg.path.apps_dir
+DATA = cfg.data_dir
 
 
 def _push_refresh_alert(slot: str, message: str) -> None:

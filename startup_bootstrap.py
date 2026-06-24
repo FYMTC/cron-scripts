@@ -14,8 +14,10 @@ import subprocess
 import sys
 from datetime import datetime, time
 from zoneinfo import ZoneInfo
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
-BOOTSTRAP_STATE = "/config/quant_scripts/data/bootstrap_state.json"
+BOOTSTRAP_STATE = cfg.path.bootstrap_state
 SCRIPTS_DIR = "/root/.hermes/scripts"
 PYTHON = "/usr/local/bin/python3"
 CST = ZoneInfo("Asia/Shanghai")
@@ -68,7 +70,7 @@ def _run_script(script_name: str) -> bool:
         r = subprocess.run(
             [PYTHON, path],
             capture_output=True, text=True, timeout=60,
-            cwd="/config/quant_scripts",
+            cwd=cfg.root,
         )
         ok = r.returncode == 0
         output = (r.stdout or "")[-200:]

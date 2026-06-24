@@ -3,11 +3,13 @@
 import os
 import subprocess
 import sys
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
 VENV_PY = "/usr/local/bin/python3"
-VERIFY = "/config/.hermes/scripts/signal_verify_report.py"
-APP = "/config/quant_scripts/apps/close.py"
-OUT = "/config/quant_scripts/data/close_output.json"
+VERIFY = cfg.system.hermes_root + "/scripts/signal_verify_report.py"
+APP = cfg.path.apps_dir + "/close.py"
+OUT = cfg.path.close_output
 
 
 def main():

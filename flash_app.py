@@ -3,19 +3,21 @@
 flash_app.py — 薄封装：调用 apps/flash.py --save，然后 stdout 回显 JSON。
 
 cron 配置：
-  script=/config/.hermes/scripts/flash_app.py
+  script=flash_app.py
   prompt: 短 prompt，只读取 output JSON + 四步门禁，不嵌 bash。
   workdir: 不需单独设置（脚本内置绝对路径）
 
 用法（cron 定期执行）:
-  /config/.hermes/scripts/flash_app.py
+  flash_app.py
 """
 
 import subprocess, sys, os, json
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
-APP = "/config/quant_scripts/apps/flash.py"
+APP = cfg.path.apps_dir + "/flash.py"
 VENV_PY = "/usr/local/bin/python3"
-OUT = "/config/quant_scripts/data/flash_output.json"
+OUT = cfg.path.flash_output
 
 def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)

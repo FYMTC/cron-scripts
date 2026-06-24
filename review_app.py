@@ -7,15 +7,17 @@ import os
 import subprocess
 import sys
 from datetime import datetime
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
 VENV_PY = "/usr/local/bin/python3"
-PREFLIGHT = "/config/.hermes/scripts/night_preflight.py"
-SELF_CHECK = "/config/quant_scripts/v5_self_check.py"
-NIGHT = "/config/quant_scripts/apps/night.py"
-AUDIT = "/config/quant_scripts/signal_audit.py"
-CVRF = "/config/quant_scripts/cvrf_reflection.py"
+PREFLIGHT = cfg.system.hermes_root + "/scripts/night_preflight.py"
+SELF_CHECK = cfg.root + "/v5_self_check.py"
+NIGHT = cfg.path.apps_dir + "/night.py"
+AUDIT = cfg.root + "/signal_audit.py"
+CVRF = cfg.root + "/cvrf_reflection.py"
 DIGEST = os.path.join(os.path.dirname(__file__), "digest_app.py")
-RUNTIME_DATA_DIR = os.environ.get("QUANT_RUNTIME_DATA_DIR") or "/config/quant_scripts/data"
+RUNTIME_DATA_DIR = cfg.data_dir
 OUT = os.path.join(RUNTIME_DATA_DIR, "night_output.json")
 REVIEW_JSON = os.path.join(RUNTIME_DATA_DIR, "review_bundle.json")
 FEATURE_SNAPSHOT_JSON = os.path.join(RUNTIME_DATA_DIR, "feature_snapshot.json")
@@ -24,7 +26,7 @@ WIKI_REPORTS_DIR = os.environ.get("QUANT_WIKI_REPORTS_DIR") or "/config/quant-wi
 TEST_MODE = bool(os.environ.get("QUANT_RUNTIME_SCENARIO") or os.environ.get("QUANT_TEST_MODE"))
 
 
-sys.path.insert(0, "/config/quant_scripts")
+sys.path.insert(0, cfg.root)
 
 
 def _save_report_copy(body: str, generated_at: str, tag: str) -> None:
@@ -254,7 +256,7 @@ def main():
     webhook_url = os.environ.get("WECHAT_WEBHOOK_URL", "")
     if not webhook_url:
         try:
-            with open("/config/.hermes/.env") as f:
+            with open(cfg.path.hermes_env) as f:
                 for line in f:
                     if line.startswith("WECHAT_WEBHOOK_URL="):
                         webhook_url = line.split("=", 1)[1].strip()
@@ -294,7 +296,7 @@ def main():
         from strategy_optimizer import build_optimization_report
         opt = build_optimization_report()
         bundle["optimization_report"] = {
-            "path": "/config/quant_scripts/data/optimization_report.json",
+            "path": cfg.data_dir + "/optimization_report.json",
             "recommendations": len(opt.get("recommendations", [])),
         }
     except Exception:

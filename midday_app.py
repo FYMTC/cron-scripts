@@ -3,18 +3,20 @@
 midday_app.py — 薄封装：调用 apps/midday.py --save，stdout 回显 JSON。
 
 cron 配置：
-  script=/config/.hermes/scripts/midday_app.py
+  script=midday_app.py
   prompt: 短 prompt，只读取 output JSON + 四步门禁，不嵌 bash。
 
 用法（cron 定期执行）:
-  /config/.hermes/scripts/midday_app.py
+  midday_app.py
 """
 
 import subprocess, sys, os, json
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
-APP = "/config/quant_scripts/apps/midday.py"
+APP = cfg.path.apps_dir + "/midday.py"
 VENV_PY = "/usr/local/bin/python3"
-OUT = "/config/quant_scripts/data/midday_output.json"
+OUT = cfg.path.midday_output
 
 def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)

@@ -12,10 +12,12 @@ import os
 import time
 from datetime import datetime
 from zoneinfo import ZoneInfo
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
-GUARD_PY = "/config/quant_scripts/smart_guard_v3.py"
-GUARD_LOG = "/config/quant_scripts/guard_daemon.log"
-HEARTBEAT_FILE = "/config/quant_scripts/guard_heartbeat.txt"
+GUARD_PY = cfg.root + "/smart_guard_v3.py"
+GUARD_LOG = cfg.path.guard_daemon_log
+HEARTBEAT_FILE = cfg.path.guard_heartbeat
 PYTHON = "/usr/local/bin/python3"
 # 主循环约 30s/轮；超过该阈值视为无有效心跳
 STALE_HEARTBEAT_SEC = 150
@@ -94,7 +96,7 @@ def restart_guard():
             stdout=open(GUARD_LOG, "a"),
             stderr=subprocess.STDOUT,
             preexec_fn=os.setpgrp,
-            cwd="/config/quant_scripts"
+            cwd=cfg.root
         )
         time.sleep(3)
         

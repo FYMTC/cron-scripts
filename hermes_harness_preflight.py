@@ -14,8 +14,10 @@ hermes_harness_preflight.py — Harness通用前置脚本
 
 import subprocess, json, os, sys
 from datetime import datetime
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
-SCRIPTS_DIR = "/config/quant_scripts"
+SCRIPTS_DIR = cfg.root
 PYTHON = "/usr/local/bin/python3"
 
 def run_claim_check():
@@ -48,7 +50,7 @@ def main():
 
 I1: 组件状态声明必须先查manifest
     任何关于"X组件是否在生产运行"的断言，必须先读取
-    /config/quant_scripts/system_manifest.json 中该组件的 status 字段。
+    system_manifest.json 中该组件的 status 字段。
     禁止凭记忆回答系统集成状态。
 
 I2: 交易建议必须走完四步门禁

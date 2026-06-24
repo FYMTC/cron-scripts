@@ -3,10 +3,12 @@
 import os
 import subprocess
 import sys
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
-APP = "/config/quant_scripts/apps/afternoon.py"
+APP = cfg.path.apps_dir + "/afternoon.py"
 VENV_PY = "/usr/local/bin/python3"
-OUT = "/config/quant_scripts/data/afternoon_output.json"
+OUT = cfg.path.afternoon_output
 
 
 def main():

@@ -4,9 +4,11 @@
 由 21:00 夜报 cron 以 script 参数调用，stdout 注入到 cron 上下文。
 """
 import subprocess, sys
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
 r = subprocess.run(
-    ["/config/quant_env/bin/python", "/config/quant_scripts/data_health.py"],
+    [cfg.python, cfg.root + "/data_health.py"],
     capture_output=True, text=True, timeout=30
 )
 print(r.stdout)

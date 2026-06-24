@@ -2,8 +2,10 @@
 """周六第二档：仅将 weekend_data.json 回显到 stdout（不重跑 RD-Agent）。"""
 import json
 import sys
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
-PATH = "/config/quant_scripts/data/weekend_data.json"
+PATH = cfg.path.weekend_data
 
 
 def main() -> None:

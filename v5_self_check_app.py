@@ -3,9 +3,11 @@
 import json
 import subprocess
 import sys
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
 VENV_PY = "/usr/local/bin/python3"
-CHECK = "/config/quant_scripts/v5_self_check.py"
+CHECK = cfg.root + "/v5_self_check.py"
 
 
 def main():

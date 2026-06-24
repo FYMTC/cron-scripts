@@ -3,10 +3,12 @@
 
 import subprocess
 import sys
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
-OUT = "/config/quant_scripts/data/morning_output.json"
-PY = "/config/quant_env/bin/python"
-APP = "/config/quant_scripts/apps/morning.py"
+OUT = cfg.path.morning_output
+PY = cfg.python
+APP = cfg.path.apps_dir + "/morning.py"
 
 r = subprocess.run(
     [PY, APP, "--save", OUT],

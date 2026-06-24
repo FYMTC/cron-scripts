@@ -3,11 +3,13 @@
 import os
 import subprocess
 import sys
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
 VENV_PY = "/usr/local/bin/python3"
-PREFLIGHT = "/config/.hermes/scripts/night_preflight.py"
-APP = "/config/quant_scripts/apps/night.py"
-OUT = "/config/quant_scripts/data/night_output.json"
+PREFLIGHT = cfg.system.hermes_root + "/scripts/night_preflight.py"
+APP = cfg.path.apps_dir + "/night.py"
+OUT = cfg.path.night_output
 
 
 def main():

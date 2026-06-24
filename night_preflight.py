@@ -6,31 +6,33 @@ import re
 import subprocess
 import sys
 from datetime import datetime
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
 PY = "/usr/local/bin/python3"
-RUNTIME_DATA_DIR = os.environ.get("QUANT_RUNTIME_DATA_DIR") or "/config/quant_scripts/data"
+RUNTIME_DATA_DIR = cfg.data_dir
 SCREENER_JSON = os.path.join(RUNTIME_DATA_DIR, "screener_top15.json")
 NIGHT_QUANT_JSON = os.path.join(RUNTIME_DATA_DIR, "night_quant.json")
 TEST_MODE = bool(os.environ.get("QUANT_RUNTIME_SCENARIO") or os.environ.get("QUANT_TEST_MODE"))
 BASE_SCRIPTS = [
-    [PY, "/config/.hermes/scripts/hermes_harness_preflight.py"],
-    [PY, "/config/quant_scripts/core/engines/event_calendar.py", "--json", "--update-cron-state"],
-    [PY, "/config/quant_scripts/signal_executor.py", "verify", "--min-days", "1"],
-    [PY, "/config/quant_scripts/signal_executor.py", "report"],
-    [PY, "/config/quant_scripts/signal_executor.py", "expire"],
-    [PY, "/config/quant_scripts/signal_lifecycle.py", "audit"],
-    [PY, "/config/quant_scripts/risk_monitor.py", "--json"],
-    [PY, "/config/quant_scripts/data_health.py"],
+    [PY, cfg.system.hermes_root + "/scripts/hermes_harness_preflight.py"],
+    [PY, cfg.root + "/core/engines/event_calendar.py", "--json", "--update-cron-state"],
+    [PY, cfg.root + "/signal_executor.py", "verify", "--min-days", "1"],
+    [PY, cfg.root + "/signal_executor.py", "report"],
+    [PY, cfg.root + "/signal_executor.py", "expire"],
+    [PY, cfg.root + "/signal_lifecycle.py", "audit"],
+    [PY, cfg.root + "/risk_monitor.py", "--json"],
+    [PY, cfg.root + "/data_health.py"],
 ]
 FULL_ONLY_SCRIPTS = [
-    [PY, "/config/quant_scripts/stock_screener.py", "--top", "15", "--save", SCREENER_JSON],
-    [PY, "/config/quant_scripts/market_regime.py", "--json"],
-    [PY, "/config/quant_scripts/stat_arb.py", "--json"],
-    [PY, "/config/quant_scripts/dl_predictor.py", "--code", "000063", "--horizon", "5", "--json"],
-    [PY, "/config/quant_scripts/factor_pca.py", "--json"],
-    [PY, "/config/quant_scripts/system_component_audit.py"],
-    [PY, "/config/quant_scripts/cvrf_reflection.py"],
-    [PY, "/config/quant_scripts/manifest_touch.py", "--cron-id", "dd8c45af9154"],
+    [PY, cfg.root + "/stock_screener.py", "--top", "15", "--save", SCREENER_JSON],
+    [PY, cfg.root + "/market_regime.py", "--json"],
+    [PY, cfg.root + "/stat_arb.py", "--json"],
+    [PY, cfg.root + "/dl_predictor.py", "--code", "000063", "--horizon", "5", "--json"],
+    [PY, cfg.root + "/factor_pca.py", "--json"],
+    [PY, cfg.root + "/system_component_audit.py"],
+    [PY, cfg.root + "/cvrf_reflection.py"],
+    [PY, cfg.root + "/manifest_touch.py", "--cron-id", "dd8c45af9154"],
 ]
 
 
@@ -38,7 +40,7 @@ def _scripts() -> list[list[str]]:
     scripts = list(BASE_SCRIPTS)
     if TEST_MODE:
         if not os.path.exists(SCREENER_JSON):
-            scripts.append([PY, "/config/quant_scripts/stock_screener.py", "--top", "15", "--save", SCREENER_JSON])
+            scripts.append([PY, cfg.root + "/stock_screener.py", "--top", "15", "--save", SCREENER_JSON])
         return scripts
     scripts.extend(FULL_ONLY_SCRIPTS)
     return scripts

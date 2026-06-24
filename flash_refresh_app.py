@@ -1,5 +1,7 @@
 #!/usr/local/bin/python3
 import os, subprocess, sys
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 r = subprocess.run(
     ["/usr/local/bin/python3", os.path.join(os.path.dirname(__file__), "data_refresh_app.py"), "flash"] + sys.argv[1:],
 )

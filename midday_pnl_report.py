@@ -8,17 +8,19 @@ import os
 import subprocess
 import sys
 from datetime import datetime
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
-sys.path.insert(0, "/config/quant_scripts")
+sys.path.insert(0, cfg.root)
 
-DATA_DIR = os.environ.get("QUANT_RUNTIME_DATA_DIR") or "/config/quant_scripts/data"
+DATA_DIR = cfg.data_dir
 WEBHOOK_URL = os.environ.get("WECHAT_WEBHOOK_URL") or ""
 
 
 def _load_webhook_url() -> str:
     if WEBHOOK_URL:
         return WEBHOOK_URL
-    env_path = "/config/.hermes/.env"
+    env_path = cfg.path.hermes_env
     if os.path.isfile(env_path):
         for line in open(env_path, encoding="utf-8").read().splitlines():
             if line.startswith("WECHAT_WEBHOOK_URL="):

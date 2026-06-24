@@ -8,11 +8,13 @@ import os
 import subprocess
 import sys
 from datetime import datetime
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
 VENV_PY = "/usr/local/bin/python3"
-HARNESS = "/config/.hermes/scripts/hermes_harness_preflight.py"
-SIG = "/config/quant_scripts/guard_emergency_signal.txt"
-ALT = "/config/quant_scripts/guard_emergency.txt"
+HARNESS = cfg.system.hermes_root + "/scripts/hermes_harness_preflight.py"
+SIG = cfg.path.guard_emergency_signal
+ALT = cfg.path.guard_emergency
 
 
 def main():

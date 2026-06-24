@@ -5,12 +5,14 @@ import os
 import subprocess
 import sys
 import tempfile
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 
-HARNESS = "/config/.hermes/scripts/hermes_harness_preflight.py"
+HARNESS = cfg.system.hermes_root + "/scripts/hermes_harness_preflight.py"
 PYTHON = "/usr/local/bin/python3"
-RDAGENT_WRAPPER = "/config/quant_scripts/rdagent_weekend_preflight.py"
-EXPORT = "/config/quant_scripts/apps/weekend_data_export.py"
-OUT_JSON = "/config/quant_scripts/data/weekend_data.json"
+RDAGENT_WRAPPER = cfg.root + "/rdagent_weekend_preflight.py"
+EXPORT = cfg.path.apps_dir + "/weekend_data_export.py"
+OUT_JSON = cfg.path.weekend_data
 
 
 def _save_weekend_bundle(rd_stdout: str) -> None:
