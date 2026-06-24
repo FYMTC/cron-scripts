@@ -1,10 +1,10 @@
-#!/config/quant_env/bin/python3
+#!/usr/local/bin/python3
 """每晚系统自检薄封装 → stdout JSON（并入 review_bundle）。"""
 import json
 import subprocess
 import sys
 
-VENV_PY = "/config/quant_env/bin/python3"
+VENV_PY = "/usr/local/bin/python3"
 CHECK = "/config/quant_scripts/v5_self_check.py"
 
 

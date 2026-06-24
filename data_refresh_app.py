@@ -1,4 +1,4 @@
-#!/config/quant_env/bin/python3
+#!/usr/local/bin/python3
 """
 盘中/收盘数据刷新（P2）— 仅跑 apps/*，无 LLM。
 stdout JSON 供 Cron 静默确认：ok=true 即成功。
@@ -8,7 +8,7 @@ import os
 import subprocess
 import sys
 
-VENV_PY = "/config/quant_env/bin/python3"
+VENV_PY = "/usr/local/bin/python3"
 BASE = "/config/quant_scripts/apps"
 DATA = "/config/quant_scripts/data"
 

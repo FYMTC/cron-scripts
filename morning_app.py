@@ -1,4 +1,4 @@
-#!/config/quant_env/bin/python3
+#!/usr/local/bin/python3
 """morning_app.py — apps/morning.py 薄封装（供 Hermes cron script 字段调用）"""
 
 import subprocess

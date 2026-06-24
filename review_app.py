@@ -1,4 +1,4 @@
-#!/config/quant_env/bin/python3
+#!/usr/local/bin/python3
 """
 收盘 Review 薄封装（P4）：night_preflight + night + signal_audit + cvrf 摘要 JSON。
 """
@@ -8,7 +8,7 @@ import subprocess
 import sys
 from datetime import datetime
 
-VENV_PY = "/config/quant_env/bin/python3"
+VENV_PY = "/usr/local/bin/python3"
 PREFLIGHT = "/config/.hermes/scripts/night_preflight.py"
 SELF_CHECK = "/config/quant_scripts/v5_self_check.py"
 NIGHT = "/config/quant_scripts/apps/night.py"

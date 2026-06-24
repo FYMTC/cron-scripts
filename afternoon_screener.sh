@@ -15,7 +15,7 @@ SAVE="/config/quant_scripts/data/screener_top15.json"
 
 echo "[$(date -Iseconds)] 午后选股开始..." >> "$LOG"
 
-PYTHONPATH=/config/quant_scripts /config/quant_env/bin/python3 \
+PYTHONPATH=/config/quant_scripts /usr/local/bin/python3 \
     "$SCREENER" --top 15 --save "$SAVE" >> "$LOG" 2>&1
 
 echo "[$(date -Iseconds)] 完成" >> "$LOG"

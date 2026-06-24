@@ -1,11 +1,11 @@
-#!/config/quant_env/bin/python3
+#!/usr/local/bin/python3
 """11:30 午间 — apps/noon.py 薄封装，stdout 回显 JSON。"""
 import os
 import subprocess
 import sys
 
 APP = "/config/quant_scripts/apps/noon.py"
-VENV_PY = "/config/quant_env/bin/python3"
+VENV_PY = "/usr/local/bin/python3"
 OUT = "/config/quant_scripts/data/noon_output.json"
 
 

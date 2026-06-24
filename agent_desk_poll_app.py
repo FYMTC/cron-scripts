@@ -1,4 +1,4 @@
-#!/config/quant_env/bin/python3
+#!/usr/local/bin/python3
 """
 Agent Desk 轮询（无 LLM）：*/5 仅跑 agent_desk.py。
 needs_hermes=false → 零 token；true → 写 pending 并 `hermes cron run` LLM job。
@@ -9,7 +9,7 @@ import subprocess
 import sys
 from datetime import datetime
 
-VENV_PY = "/config/quant_env/bin/python3"
+VENV_PY = "/usr/local/bin/python3"
 SCRIPTS = "/config/quant_scripts"
 sys.path.insert(0, SCRIPTS)
 

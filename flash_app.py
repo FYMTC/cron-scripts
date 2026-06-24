@@ -14,7 +14,7 @@ cron 配置：
 import subprocess, sys, os, json
 
 APP = "/config/quant_scripts/apps/flash.py"
-VENV_PY = "/config/quant_env/bin/python3"
+VENV_PY = "/usr/local/bin/python3"
 OUT = "/config/quant_scripts/data/flash_output.json"
 
 def main():

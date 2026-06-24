@@ -1,4 +1,4 @@
-#!/config/quant_env/bin/python3
+#!/usr/local/bin/python3
 """21:00 夜报前置 — 信号 + 风险 + 数据 + 审计 + CVRF + Q-phase全量量化"""
 import json
 import os
@@ -7,7 +7,7 @@ import subprocess
 import sys
 from datetime import datetime
 
-PY = "/config/quant_env/bin/python3"
+PY = "/usr/local/bin/python3"
 RUNTIME_DATA_DIR = os.environ.get("QUANT_RUNTIME_DATA_DIR") or "/config/quant_scripts/data"
 SCREENER_JSON = os.path.join(RUNTIME_DATA_DIR, "screener_top15.json")
 NIGHT_QUANT_JSON = os.path.join(RUNTIME_DATA_DIR, "night_quant.json")

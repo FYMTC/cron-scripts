@@ -1,4 +1,4 @@
-#!/config/quant_env/bin/python3
+#!/usr/local/bin/python3
 """
 数据健康检查 — cron 脚本包装器
 由 21:00 夜报 cron 以 script 参数调用，stdout 注入到 cron 上下文。

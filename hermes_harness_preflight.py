@@ -1,4 +1,4 @@
-#!/config/quant_env/bin/python3
+#!/usr/local/bin/python3
 """
 hermes_harness_preflight.py — Harness通用前置脚本
 =================================================
@@ -16,7 +16,7 @@ import subprocess, json, os, sys
 from datetime import datetime
 
 SCRIPTS_DIR = "/config/quant_scripts"
-PYTHON = "/config/quant_env/bin/python3"
+PYTHON = "/usr/local/bin/python3"
 
 def run_claim_check():
     """运行全量组件审计"""

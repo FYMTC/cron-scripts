@@ -1,4 +1,4 @@
-#!/config/quant_env/bin/python3
+#!/usr/local/bin/python3
 """周末因子挖掘 + HARNESS 前置；可选 --save-weekend-data 落盘 weekend_data.json（Option C）"""
 import argparse
 import os
@@ -7,7 +7,7 @@ import sys
 import tempfile
 
 HARNESS = "/config/.hermes/scripts/hermes_harness_preflight.py"
-PYTHON = "/config/quant_env/bin/python3"
+PYTHON = "/usr/local/bin/python3"
 RDAGENT_WRAPPER = "/config/quant_scripts/rdagent_weekend_preflight.py"
 EXPORT = "/config/quant_scripts/apps/weekend_data_export.py"
 OUT_JSON = "/config/quant_scripts/data/weekend_data.json"

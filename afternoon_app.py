@@ -1,11 +1,11 @@
-#!/config/quant_env/bin/python3
+#!/usr/local/bin/python3
 """14:00 下午速报 — apps/afternoon.py 薄封装，stdout 回显 JSON。子进程 `--save` 超时 600s（含 Baostock 逐只量化）。"""
 import os
 import subprocess
 import sys
 
 APP = "/config/quant_scripts/apps/afternoon.py"
-VENV_PY = "/config/quant_env/bin/python3"
+VENV_PY = "/usr/local/bin/python3"
 OUT = "/config/quant_scripts/data/afternoon_output.json"
 
 

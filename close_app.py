@@ -1,10 +1,10 @@
-#!/config/quant_env/bin/python3
+#!/usr/local/bin/python3
 """15:05 收盘 — 先跑 signal 校验链，再 apps/close.py 产出 JSON，stdout 仅回显 close JSON。"""
 import os
 import subprocess
 import sys
 
-VENV_PY = "/config/quant_env/bin/python3"
+VENV_PY = "/usr/local/bin/python3"
 VERIFY = "/config/.hermes/scripts/signal_verify_report.py"
 APP = "/config/quant_scripts/apps/close.py"
 OUT = "/config/quant_scripts/data/close_output.json"

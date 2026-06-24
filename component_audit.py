@@ -1,10 +1,10 @@
-#!/config/quant_env/bin/python3
+#!/usr/local/bin/python3
 """系统组件审计 + HARNESS 前置"""
 import subprocess, sys
 
 HARNESS = "/config/.hermes/scripts/hermes_harness_preflight.py"
 AUDIT = "/config/quant_scripts/system_component_audit.py"
-PYTHON = "/config/quant_env/bin/python3"
+PYTHON = "/usr/local/bin/python3"
 
 r = subprocess.run([PYTHON, HARNESS], capture_output=True, text=True, timeout=30)
 if r.stdout.strip():

@@ -1,4 +1,4 @@
-#!/config/quant_env/bin/python3
+#!/usr/local/bin/python3
 """周六第二档：仅将 weekend_data.json 回显到 stdout（不重跑 RD-Agent）。"""
 import json
 import sys

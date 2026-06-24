@@ -1,10 +1,10 @@
-#!/config/quant_env/bin/python3
+#!/usr/local/bin/python3
 """21:00 夜报 — 先 night_preflight（选股/审计等），再 apps/night.py 聚合 JSON；stdout 仅回显 night JSON。"""
 import os
 import subprocess
 import sys
 
-VENV_PY = "/config/quant_env/bin/python3"
+VENV_PY = "/usr/local/bin/python3"
 PREFLIGHT = "/config/.hermes/scripts/night_preflight.py"
 APP = "/config/quant_scripts/apps/night.py"
 OUT = "/config/quant_scripts/data/night_output.json"

@@ -1,4 +1,4 @@
-#!/config/quant_env/bin/python3
+#!/usr/local/bin/python3
 """15:05 信号验证 + HARNESS 前置"""
 import subprocess, sys
 

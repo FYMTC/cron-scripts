@@ -1,4 +1,4 @@
-#!/config/quant_env/bin/python3
+#!/usr/local/bin/python3
 """
 启动恢复引导 — gateway 重启后自动 kickstart 交易系统。
 每分钟运行，但每天只执行一次（用日期戳去重）。
@@ -17,7 +17,7 @@ from zoneinfo import ZoneInfo
 
 BOOTSTRAP_STATE = "/config/quant_scripts/data/bootstrap_state.json"
 SCRIPTS_DIR = "/root/.hermes/scripts"
-PYTHON = "/config/quant_env/bin/python3"
+PYTHON = "/usr/local/bin/python3"
 CST = ZoneInfo("Asia/Shanghai")
 
 

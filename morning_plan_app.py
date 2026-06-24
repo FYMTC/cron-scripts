@@ -1,4 +1,4 @@
-#!/config/quant_env/bin/python3
+#!/usr/local/bin/python3
 """
 盘前 Plan 薄封装（P2）：morning_app + 组合/标的量化上下文 + auto_generate + 工作报告 digest。
 """
@@ -8,7 +8,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-VENV_PY = "/config/quant_env/bin/python3"
+VENV_PY = "/usr/local/bin/python3"
 SCRIPTS = "/config/quant_scripts"
 MORNING = "/config/quant_scripts/apps/morning.py"
 SIGNAL_LOOP = "/config/quant_scripts/signal_loop.py"

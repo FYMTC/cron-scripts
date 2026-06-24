@@ -1,4 +1,4 @@
-#!/config/quant_env/bin/python3
+#!/usr/local/bin/python3
 """
 cron_harness_wrapper.py — 通用cron harness包装器
 用法: 挂载到所有cron的script字段
@@ -13,7 +13,7 @@ cron_harness_wrapper.py — 通用cron harness包装器
 import subprocess, sys, os
 
 HARNESS_SCRIPT = "/config/.hermes/scripts/hermes_harness_preflight.py"
-PYTHON = "/config/quant_env/bin/python3"
+PYTHON = "/usr/local/bin/python3"
 
 def run_harness():
     r = subprocess.run([PYTHON, HARNESS_SCRIPT], capture_output=True, text=True, timeout=30)
