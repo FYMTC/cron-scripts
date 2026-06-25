@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!python3
 """
 紧急通道 */1 — 先 harness，再把 guard_emergency_signal.txt 打成 JSON 供 Agent 只读。
 （不替代 prompt 内 signal_loop 闭环节点；stdout 为 JSON，harness/原文预览走 stderr）
@@ -11,7 +11,7 @@ from datetime import datetime
 import sys; sys.path.insert(0, '/config/quant_scripts')
 from system_config import cfg
 
-VENV_PY = "/usr/local/bin/python3"
+VENV_PY = "python3"
 HARNESS = cfg.system.hermes_root + "/scripts/hermes_harness_preflight.py"
 SIG = cfg.path.guard_emergency_signal
 ALT = cfg.path.guard_emergency

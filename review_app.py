@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!python3
 """
 收盘 Review 薄封装（P4）：night_preflight + night + signal_audit + cvrf 摘要 JSON。
 """
@@ -10,7 +10,7 @@ from datetime import datetime
 import sys; sys.path.insert(0, '/config/quant_scripts')
 from system_config import cfg
 
-VENV_PY = "/usr/local/bin/python3"
+VENV_PY = "python3"
 PREFLIGHT = cfg.system.hermes_root + "/scripts/night_preflight.py"
 SELF_CHECK = cfg.root + "/v5_self_check.py"
 NIGHT = cfg.path.apps_dir + "/night.py"

@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!python3
 """兼容入口 → agent_desk_poll_app（无 LLM）。"""
 import runpy
 from pathlib import Path

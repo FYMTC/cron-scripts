@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!python3
 """
 工作报告 digest（P3）— 从已落盘 JSON 生成详细工作报告底稿，供 Hermes 润色后推微信。
 
@@ -201,7 +201,7 @@ def _fmt_expired_for_review() -> List[str]:
             f" — 原级别 {ev.get('risk_level','?')}，衰减 {ev.get('decay_days', 0)}天已过"
         )
     lines.append("> Hermes 评估：若影响已消退 → active=false；若余震仍在 → 延长 decay_days。")
-    lines.append("> 用 `/usr/local/bin/python3 -c \"...\"` 直接修改 JSON。")
+    lines.append("> 用 `python3 -c \"...\"` 直接修改 JSON。")
     return lines
 
 

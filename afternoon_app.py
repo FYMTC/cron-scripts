@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!python3
 """14:00 下午速报 — apps/afternoon.py 薄封装，stdout 回显 JSON。子进程 `--save` 超时 600s（含 Baostock 逐只量化）。"""
 import os
 import subprocess
@@ -7,7 +7,7 @@ import sys; sys.path.insert(0, '/config/quant_scripts')
 from system_config import cfg
 
 APP = cfg.path.apps_dir + "/afternoon.py"
-VENV_PY = "/usr/local/bin/python3"
+VENV_PY = "python3"
 OUT = cfg.path.afternoon_output
 
 

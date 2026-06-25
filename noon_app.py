@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!python3
 """11:30 午间 — apps/noon.py 薄封装，stdout 回显 JSON。"""
 import os
 import subprocess
@@ -7,7 +7,7 @@ import sys; sys.path.insert(0, '/config/quant_scripts')
 from system_config import cfg
 
 APP = cfg.path.apps_dir + "/noon.py"
-VENV_PY = "/usr/local/bin/python3"
+VENV_PY = "python3"
 OUT = cfg.path.noon_output
 
 

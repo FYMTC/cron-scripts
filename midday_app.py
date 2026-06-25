@@ -15,7 +15,7 @@ import sys; sys.path.insert(0, '/config/quant_scripts')
 from system_config import cfg
 
 APP = cfg.path.apps_dir + "/midday.py"
-VENV_PY = "/usr/local/bin/python3"
+VENV_PY = "python3"
 OUT = cfg.path.midday_output
 
 def main():

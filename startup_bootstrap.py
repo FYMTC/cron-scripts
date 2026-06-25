@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!python3
 """
 启动恢复引导 — gateway 重启后自动 kickstart 交易系统。
 每分钟运行，但每天只执行一次（用日期戳去重）。
@@ -19,7 +19,7 @@ from system_config import cfg
 
 BOOTSTRAP_STATE = cfg.path.bootstrap_state
 SCRIPTS_DIR = "/root/.hermes/scripts"
-PYTHON = "/usr/local/bin/python3"
+PYTHON = "python3"
 CST = ZoneInfo("Asia/Shanghai")
 
 

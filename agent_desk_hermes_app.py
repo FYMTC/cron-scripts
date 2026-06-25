@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!python3
 """
 Agent Desk LLM 前置脚本：向 Hermes 注入 agent_desk JSON（优先读 pending，避免重复跑 desk）。
 仅由 guard 唤醒或 poll 触发，不挂在 */5 定时 LLM 上。
@@ -9,13 +9,13 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 
-VENV_PY = "/usr/local/bin/python3"
+VENV_PY = "python3"
+import sys; sys.path.insert(0, '/config/quant_scripts')
+from system_config import cfg
 SCRIPTS = cfg.root
 sys.path.insert(0, SCRIPTS)
 
 import agent_desk_config as adc  # noqa: E402
-import sys; sys.path.insert(0, '/config/quant_scripts')
-from system_config import cfg
 
 DESK = os.path.join(SCRIPTS, "agent_desk.py")
 

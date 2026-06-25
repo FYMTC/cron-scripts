@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!python3
 """
 Agent Desk 轮询（无 LLM）：*/5 仅跑 agent_desk.py。
 needs_hermes=false → 零 token；true → 写 pending 并 `hermes cron run` LLM job。
@@ -9,13 +9,12 @@ import subprocess
 import sys
 from datetime import datetime
 
-VENV_PY = "/usr/local/bin/python3"
-SCRIPTS = cfg.root
-sys.path.insert(0, SCRIPTS)
-
-import agent_desk_config as adc  # noqa: E402
+VENV_PY = "python3"
 import sys; sys.path.insert(0, '/config/quant_scripts')
 from system_config import cfg
+SCRIPTS = cfg.root
+sys.path.insert(0, SCRIPTS)
+import agent_desk_config as adc  # noqa: E402
 
 DESK = os.path.join(SCRIPTS, "agent_desk.py")
 

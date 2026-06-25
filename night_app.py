@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!python3
 """21:00 夜报 — 先 night_preflight（选股/审计等），再 apps/night.py 聚合 JSON；stdout 仅回显 night JSON。"""
 import os
 import subprocess
@@ -6,7 +6,7 @@ import sys
 import sys; sys.path.insert(0, '/config/quant_scripts')
 from system_config import cfg
 
-VENV_PY = "/usr/local/bin/python3"
+VENV_PY = "python3"
 PREFLIGHT = cfg.system.hermes_root + "/scripts/night_preflight.py"
 APP = cfg.path.apps_dir + "/night.py"
 OUT = cfg.path.night_output

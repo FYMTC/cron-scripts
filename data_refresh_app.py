@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!python3
 """
 盘中/收盘数据刷新（P2）— 仅跑 apps/*，无 LLM。
 stdout JSON 供 Cron 静默确认：ok=true 即成功。

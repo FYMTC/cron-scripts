@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!python3
 """
 hermes_harness_preflight.py — Harness通用前置脚本
 =================================================
@@ -18,7 +18,7 @@ import sys; sys.path.insert(0, '/config/quant_scripts')
 from system_config import cfg
 
 SCRIPTS_DIR = cfg.root
-PYTHON = "/usr/local/bin/python3"
+PYTHON = "python3"
 
 def run_claim_check():
     """运行全量组件审计"""

@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!python3
 """
 cron_harness_wrapper.py — 通用cron harness包装器
 用法: 挂载到所有cron的script字段
@@ -15,7 +15,7 @@ import sys; sys.path.insert(0, '/config/quant_scripts')
 from system_config import cfg
 
 HARNESS_SCRIPT = cfg.system.hermes_root + "/scripts/hermes_harness_preflight.py"
-PYTHON = "/usr/local/bin/python3"
+PYTHON = "python3"
 
 def run_harness():
     r = subprocess.run([PYTHON, HARNESS_SCRIPT], capture_output=True, text=True, timeout=30)

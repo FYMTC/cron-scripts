@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!python3
 """morning_app.py — apps/morning.py 薄封装（供 Hermes cron script 字段调用）"""
 
 import subprocess

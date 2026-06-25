@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!python3
 """
 midday_pnl_report.py — 午盘盈利快报（11:30 CST 收盘后自动发送）
 读取 EasyTHS 实时持仓 + 盈亏，格式化后推送到企业微信 webhook。

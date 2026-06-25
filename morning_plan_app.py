@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!python3
 """
 盘前 Plan 薄封装（P2）：morning_app + 组合/标的量化上下文 + auto_generate + 工作报告 digest。
 """
@@ -10,7 +10,7 @@ from pathlib import Path
 import sys; sys.path.insert(0, '/config/quant_scripts')
 from system_config import cfg
 
-VENV_PY = "/usr/local/bin/python3"
+VENV_PY = "python3"
 SCRIPTS = cfg.root
 MORNING = cfg.path.apps_dir + "/morning.py"
 SIGNAL_LOOP = cfg.root + "/signal_loop.py"

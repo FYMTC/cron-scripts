@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!python3
 """15:05 收盘 — 先跑 signal 校验链，再 apps/close.py 产出 JSON，stdout 仅回显 close JSON。"""
 import os
 import subprocess
@@ -6,7 +6,7 @@ import sys
 import sys; sys.path.insert(0, '/config/quant_scripts')
 from system_config import cfg
 
-VENV_PY = "/usr/local/bin/python3"
+VENV_PY = "python3"
 VERIFY = cfg.system.hermes_root + "/scripts/signal_verify_report.py"
 APP = cfg.path.apps_dir + "/close.py"
 OUT = cfg.path.close_output

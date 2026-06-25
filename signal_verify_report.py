@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!python3
 """15:05 信号验证 + HARNESS 前置"""
 import subprocess, sys
 import sys; sys.path.insert(0, '/config/quant_scripts')
