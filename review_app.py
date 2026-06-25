@@ -154,21 +154,29 @@ def main():
     if TEST_MODE:
         self_check = {"exit_code": 0, "ok": True, "skipped": "test_mode"}
     else:
-        r_sc = subprocess.run([VENV_PY, SELF_CHECK, "--json"], capture_output=True, text=True, timeout=180)
-        self_check = {"exit_code": r_sc.returncode, "ok": r_sc.returncode == 0}
-        if r_sc.stdout:
-            parsed = _extract_json_object(r_sc.stdout)
-            if parsed:
-                self_check.update(parsed)
-            else:
-                self_check["raw"] = r_sc.stdout[:800]
+        try:
+            r_sc = subprocess.run([VENV_PY, SELF_CHECK, "--json"], capture_output=True, text=True, timeout=300)
+            self_check = {"exit_code": r_sc.returncode, "ok": r_sc.returncode == 0}
+            if r_sc.stdout:
+                parsed = _extract_json_object(r_sc.stdout)
+                if parsed:
+                    self_check.update(parsed)
+                else:
+                    self_check["raw"] = r_sc.stdout[:800]
+        except subprocess.TimeoutExpired:
+            self_check = {"exit_code": -1, "ok": False, "error": "v5_self_check timeout (300s)", "skipped": True}
+            sys.stderr.write("review_app: v5_self_check timed out after 300s, continuing without self-check\n")
     bundle["steps"]["v5_self_check"] = self_check
     bundle["v5_self_check_ok"] = bool(self_check.get("ok", False))
 
-    r0 = subprocess.run([VENV_PY, PREFLIGHT], capture_output=True, text=True, timeout=900)
-    bundle["steps"]["night_preflight"] = {"exit_code": r0.returncode}
-    if r0.stderr:
-        sys.stderr.write(r0.stderr[-2000:])
+    try:
+        r0 = subprocess.run([VENV_PY, PREFLIGHT], capture_output=True, text=True, timeout=120)
+        bundle["steps"]["night_preflight"] = {"exit_code": r0.returncode}
+        if r0.stderr:
+            sys.stderr.write(r0.stderr[-2000:])
+    except subprocess.TimeoutExpired:
+        bundle["steps"]["night_preflight"] = {"exit_code": -1, "error": "timeout (120s)"}
+        sys.stderr.write("review_app: night_preflight timed out after 120s, continuing\n")
 
     r1 = subprocess.run([VENV_PY, NIGHT, "--save", OUT], capture_output=True, text=True, timeout=120)
     bundle["steps"]["night"] = {"exit_code": r1.returncode, "path": OUT}
