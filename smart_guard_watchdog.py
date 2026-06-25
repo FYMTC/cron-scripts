@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/usr/bin/env python3
 """
 smart_guard 进程监管 — watchdog cron 脚本
 ========================================
@@ -18,7 +18,7 @@ from system_config import cfg
 GUARD_PY = cfg.root + "/smart_guard_v3.py"
 GUARD_LOG = cfg.path.guard_daemon_log
 HEARTBEAT_FILE = cfg.path.guard_heartbeat
-PYTHON = "/usr/local/bin/python3"
+PYTHON = "python3"
 # 主循环约 30s/轮；超过该阈值视为无有效心跳
 STALE_HEARTBEAT_SEC = 150
 
