@@ -10,7 +10,7 @@ from pathlib import Path
 import sys; sys.path.insert(0, '/config/quant_scripts')
 from system_config import cfg
 
-VENV_PY = "python3"
+VENV_PY = cfg.python
 SCRIPTS = cfg.root
 MORNING = cfg.path.apps_dir + "/morning.py"
 SIGNAL_LOOP = cfg.root + "/signal_loop.py"
