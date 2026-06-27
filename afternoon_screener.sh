@@ -9,13 +9,13 @@ if [ "$DOW" -gt 5 ]; then
     exit 0
 fi
 
-LOG="/config/quant_scripts/data/afternoon_screener.log"
-SCREENER="/config/quant_scripts/stock_screener.py"
-SAVE="/config/quant_scripts/data/screener_top15.json"
+LOG="/root/ai_trading_package/quant/quant_scripts/data/afternoon_screener.log"
+SCREENER="/root/ai_trading_package/quant/quant_scripts/stock_screener.py"
+SAVE="/root/ai_trading_package/quant/quant_scripts/data/screener_top15.json"
 
 echo "[$(date -Iseconds)] 午后选股开始..." >> "$LOG"
 
-PYTHONPATH=/config/quant_scripts /usr/local/bin/python3 \
+PYTHONPATH=/root/ai_trading_package/quant/quant_scripts /usr/local/bin/python3 \
     "$SCREENER" --top 15 --save "$SAVE" >> "$LOG" 2>&1
 
 echo "[$(date -Iseconds)] 完成" >> "$LOG"

@@ -31,4 +31,4 @@ if [ "$TOTAL_MINUTES" -gt 210 ] && [ "$TOTAL_MINUTES" -lt 300 ]; then
     exit 0
 fi
 
-PYTHONPATH=/config/quant_scripts /usr/local/bin/python3 /config/.hermes/scripts/agent_desk_poll_app.py
+PYTHONPATH=/root/ai_trading_package/quant/quant_scripts /usr/local/bin/python3 /root/.hermes/scripts/agent_desk_poll_app.py
