@@ -22,7 +22,7 @@ OUT = os.path.join(RUNTIME_DATA_DIR, "night_output.json")
 REVIEW_JSON = os.path.join(RUNTIME_DATA_DIR, "review_bundle.json")
 FEATURE_SNAPSHOT_JSON = os.path.join(RUNTIME_DATA_DIR, "feature_snapshot.json")
 PLAN_JSON = os.path.join(RUNTIME_DATA_DIR, "plan_bundle.json")
-WIKI_REPORTS_DIR = os.environ.get("QUANT_WIKI_REPORTS_DIR") or "/config/quant-wiki/reports"
+WIKI_REPORTS_DIR = os.environ.get("QUANT_WIKI_REPORTS_DIR") or cfg.path.wiki_reports_dir
 TEST_MODE = bool(os.environ.get("QUANT_RUNTIME_SCENARIO") or os.environ.get("QUANT_TEST_MODE"))
 
 
@@ -31,6 +31,9 @@ sys.path.insert(0, cfg.root)
 
 def _save_report_copy(body: str, generated_at: str, tag: str) -> None:
     if not body or not generated_at:
+        return
+    # 测试模式不污染 reports 目录（2026-06-26 修复：曾因缺失此守卫导致测试产物覆盖正式报告）
+    if TEST_MODE:
         return
     try:
         os.makedirs(WIKI_REPORTS_DIR, exist_ok=True)
