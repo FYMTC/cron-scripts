@@ -2,7 +2,7 @@
 """周六第二档：仅将 weekend_data.json 回显到 stdout（不重跑 RD-Agent）。"""
 import json
 import sys
-import sys; sys.path.insert(0, '/config/quant_scripts')
+import sys; sys.path.insert(0, '/root/ai_trading_package/quant/quant_scripts')
 from system_config import cfg
 
 PATH = cfg.path.weekend_data

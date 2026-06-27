@@ -2,7 +2,7 @@
 """周六薄封装：始终带 --save-weekend-data，供多个 job 共用同一 script 字段。"""
 import subprocess
 import sys
-import sys; sys.path.insert(0, '/config/quant_scripts')
+import sys; sys.path.insert(0, '/root/ai_trading_package/quant/quant_scripts')
 from system_config import cfg
 
 PY = cfg.python  # 2026-06-27 修复：用 quant_env python（含 numpy/qlib），原裸 "python3" 缺依赖

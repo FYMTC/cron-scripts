@@ -1,2 +1,2 @@
 #!/bin/bash
-bash /config/.hermes/scripts/sync.sh
+bash /root/.hermes/scripts/sync.sh

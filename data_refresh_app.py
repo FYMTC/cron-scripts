@@ -8,7 +8,7 @@ import os
 import subprocess
 import sys
 
-sys.path.insert(0, '/config/quant_scripts')
+sys.path.insert(0, '/root/ai_trading_package/quant/quant_scripts')
 from system_config import cfg
 from cron_refresh_config import EMERGENCY_FILE, EMERGENCY_SIGNAL
 

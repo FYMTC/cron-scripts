@@ -14,7 +14,7 @@ hermes_harness_preflight.py — Harness通用前置脚本
 
 import subprocess, json, os, sys
 from datetime import datetime
-import sys; sys.path.insert(0, '/config/quant_scripts')
+import sys; sys.path.insert(0, '/root/ai_trading_package/quant/quant_scripts')
 from system_config import cfg
 
 SCRIPTS_DIR = cfg.root

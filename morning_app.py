@@ -3,7 +3,7 @@
 
 import subprocess
 import sys
-import sys; sys.path.insert(0, '/config/quant_scripts')
+import sys; sys.path.insert(0, '/root/ai_trading_package/quant/quant_scripts')
 from system_config import cfg
 
 OUT = cfg.path.morning_output

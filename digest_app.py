@@ -9,7 +9,7 @@ import os
 import sys
 from datetime import datetime
 from typing import Any, Dict, List
-import sys; sys.path.insert(0, '/config/quant_scripts')
+import sys; sys.path.insert(0, '/root/ai_trading_package/quant/quant_scripts')
 from system_config import cfg
 
 sys.path.insert(0, cfg.root)

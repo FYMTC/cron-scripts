@@ -11,7 +11,7 @@ cron_harness_wrapper.py — 通用cron harness包装器
 """
 
 import subprocess, sys, os
-import sys; sys.path.insert(0, '/config/quant_scripts')
+import sys; sys.path.insert(0, '/root/ai_trading_package/quant/quant_scripts')
 from system_config import cfg
 
 HARNESS_SCRIPT = cfg.system.hermes_root + "/scripts/hermes_harness_preflight.py"

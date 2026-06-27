@@ -12,7 +12,7 @@ import os
 import time
 from datetime import datetime
 from zoneinfo import ZoneInfo
-import sys; sys.path.insert(0, '/config/quant_scripts')
+import sys; sys.path.insert(0, '/root/ai_trading_package/quant/quant_scripts')
 from system_config import cfg
 
 GUARD_PY = cfg.root + "/smart_guard_v3.py"

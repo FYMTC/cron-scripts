@@ -1,2 +1,2 @@
 #!/bin/bash
-bash /config/quant-wiki/sync.sh
+bash /root/ai_trading_package/quant/quant-wiki/sync.sh

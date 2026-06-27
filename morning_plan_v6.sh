@@ -15,5 +15,5 @@ echo "=== END_AGENT_REACH ==="
 # Step 2: Fetch market snapshot (existing pipeline)
 echo ""
 echo "=== MARKET_SNAPSHOT ==="
-cat /config/quant_scripts/market_snapshot.json 2>/dev/null || echo '{"error":"no_snapshot"}'
+cat /root/ai_trading_package/quant/quant_scripts/market_snapshot.json 2>/dev/null || echo '{"error":"no_snapshot"}'
 echo "=== END_SNAPSHOT ==="
