@@ -9,7 +9,6 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 
-VENV_PY = "python3"
 import sys; sys.path.insert(0, '/config/quant_scripts')
 from system_config import cfg
 SCRIPTS = cfg.root
@@ -17,6 +16,7 @@ sys.path.insert(0, SCRIPTS)
 
 import agent_desk_config as adc  # noqa: E402
 
+VENV_PY = cfg.python  # 2026-06-27 修复：用 quant_env python（含 numpy/qlib），原裸 "python3" 缺依赖
 DESK = os.path.join(SCRIPTS, "agent_desk.py")
 
 

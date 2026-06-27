@@ -18,7 +18,7 @@ import sys; sys.path.insert(0, '/config/quant_scripts')
 from system_config import cfg
 
 SCRIPTS_DIR = cfg.root
-PYTHON = "python3"
+PYTHON = cfg.python  # 2026-06-27 修复：用 quant_env python（含 numpy/qlib），原裸 "python3" 缺依赖
 
 def run_claim_check():
     """运行全量组件审计"""

@@ -16,7 +16,7 @@ import sys; sys.path.insert(0, '/config/quant_scripts')
 from system_config import cfg
 
 APP = cfg.path.apps_dir + "/flash.py"
-VENV_PY = "python3"
+VENV_PY = cfg.python  # 2026-06-27 修复：用 quant_env python（含 numpy/qlib），原裸 "python3" 缺依赖
 OUT = cfg.path.flash_output
 
 def main():

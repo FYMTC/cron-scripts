@@ -15,7 +15,7 @@ import sys; sys.path.insert(0, '/config/quant_scripts')
 from system_config import cfg
 
 HARNESS_SCRIPT = cfg.system.hermes_root + "/scripts/hermes_harness_preflight.py"
-PYTHON = "python3"
+PYTHON = cfg.python  # 2026-06-27 修复：用 quant_env python（含 numpy/qlib），原裸 "python3" 缺依赖
 
 def run_harness():
     r = subprocess.run([PYTHON, HARNESS_SCRIPT], capture_output=True, text=True, timeout=30)

@@ -9,7 +9,7 @@ from datetime import datetime
 import sys; sys.path.insert(0, '/config/quant_scripts')
 from system_config import cfg
 
-PY = "python3"
+PY = cfg.python  # 2026-06-27 修复：用 quant_env python（含 numpy/qlib），原裸 "python3" 缺依赖
 RUNTIME_DATA_DIR = cfg.data_dir
 SCREENER_JSON = os.path.join(RUNTIME_DATA_DIR, "screener_top15.json")
 NIGHT_QUANT_JSON = os.path.join(RUNTIME_DATA_DIR, "night_quant.json")

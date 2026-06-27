@@ -9,7 +9,7 @@ import sys; sys.path.insert(0, '/config/quant_scripts')
 from system_config import cfg
 
 HARNESS = cfg.system.hermes_root + "/scripts/hermes_harness_preflight.py"
-PYTHON = "python3"
+PYTHON = cfg.python  # 2026-06-27 修复：原为裸 "python3"（解析到系统 python3，无 numpy/qlib），导致周末 rdagent_weekend_preflight 报 ModuleNotFoundError: numpy
 RDAGENT_WRAPPER = cfg.root + "/rdagent_weekend_preflight.py"
 EXPORT = cfg.path.apps_dir + "/weekend_data_export.py"
 OUT_JSON = cfg.path.weekend_data

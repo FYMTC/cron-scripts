@@ -19,7 +19,7 @@ from system_config import cfg
 
 BOOTSTRAP_STATE = cfg.path.bootstrap_state
 SCRIPTS_DIR = "/root/.hermes/scripts"
-PYTHON = "python3"
+PYTHON = cfg.python  # 2026-06-27 修复：用 quant_env python（含 numpy/qlib），原裸 "python3" 缺依赖
 CST = ZoneInfo("Asia/Shanghai")
 
 

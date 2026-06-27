@@ -18,7 +18,7 @@ from system_config import cfg
 GUARD_PY = cfg.root + "/smart_guard_v3.py"
 GUARD_LOG = cfg.path.guard_daemon_log
 HEARTBEAT_FILE = cfg.path.guard_heartbeat
-PYTHON = "python3"
+PYTHON = cfg.python  # 2026-06-27 修复：用 quant_env python（含 numpy/qlib），原裸 "python3" 缺依赖
 # 主循环约 30s/轮；超过该阈值视为无有效心跳
 STALE_HEARTBEAT_SEC = 150
 
