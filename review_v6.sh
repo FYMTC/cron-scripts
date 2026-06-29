@@ -1,25 +1,26 @@
 #!/bin/bash
-# 夜报 v6 — Agent Reach 中美跨市场对比
-# 拉取 Twitter/Reddit/雪球 + 对比A股vs美股情绪
+# 夜报 v6 — 保留原 review_app.py 全流程 + Agent Reach 跨市场补充
 set -e
 
 SCRIPT_DIR="$(dirname "$0")"
 AGENT_REACH_VENV="$HOME/.agent-reach-venv"
+QUANT_DIR="/root/ai_trading_package/quant/quant_scripts"
+DATA_DIR="$QUANT_DIR/data"
 
-# Step 1: Agent Reach cross-market context
-echo "=== AGENT_REACH_NIGHT_CONTEXT ==="
+echo "=== STEP 1: review_app.py (原 v5 全流程) ==="
+# Run the original review_app to generate review_bundle.json
+cd "$QUANT_DIR"
+/root/ai_trading_package/quant_env/bin/python3 "$SCRIPT_DIR/review_app.py" 2>&1 || echo "WARN: review_app had errors"
+
+echo ""
+echo "=== STEP 2: review_bundle.json ==="
+cat "$DATA_DIR/review_bundle.json" 2>/dev/null || echo '{"error":"review_bundle not generated"}'
+
+echo ""
+echo "=== STEP 3: night_output.json ==="
+cat "$DATA_DIR/night_output.json" 2>/dev/null || echo '{"status":"not_generated"}'
+
+echo ""
+echo "=== STEP 4: AGENT_REACH_NIGHT_CONTEXT ==="
 source "$AGENT_REACH_VENV/bin/activate" 2>/dev/null || true
 python3 "$SCRIPT_DIR/agent_reach_context.py" night 2>/dev/null || echo '{"error":"agent_reach_fetch_failed"}'
-echo "=== END_AGENT_REACH ==="
-
-# Step 2: Market snapshot
-echo ""
-echo "=== MARKET_SNAPSHOT ==="
-cat /root/ai_trading_package/quant/quant_scripts/market_snapshot.json 2>/dev/null || echo '{"error":"no_snapshot"}'
-echo "=== END_SNAPSHOT ==="
-
-# Step 3: Night preflight context
-echo ""
-echo "=== NIGHT_PREFLIGHT ==="
-cat /root/ai_trading_package/quant/quant_scripts/data/night_preflight_output.json 2>/dev/null || echo '{"status":"not_run"}'
-echo "=== END_PREFLIGHT ==="
