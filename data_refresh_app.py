@@ -7,6 +7,7 @@ import json
 import os
 import subprocess
 import sys
+from datetime import datetime
 
 sys.path.insert(0, '/root/ai_trading_package/quant/quant_scripts')
 from system_config import cfg
@@ -36,6 +37,50 @@ SLOTS = {
     "close": ("close.py", "close_output.json"),
 }
 
+# ── 盘中报告 webhook 推送（T1.12 修复）──
+def _load_webhook_url() -> str:
+    env_path = cfg.path.hermes_env
+    if os.path.isfile(env_path):
+        for line in open(env_path, encoding="utf-8").read().splitlines():
+            if line.startswith("WECHAT_WEBHOOK_URL="):
+                return line.split("=", 1)[1].strip()
+    return os.environ.get("WECHAT_WEBHOOK_URL", "")
+
+
+def _send_webhook_report(slot: str, out_path: str) -> bool:
+    """盘中报告生成后通过 webhook 推送，替代 LLM 延迟投递。"""
+    url = _load_webhook_url()
+    if not url:
+        return False
+    try:
+        with open(out_path, encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        return False
+
+    now = datetime.now().strftime("%m-%d %H:%M")
+    label = {"flash": "开盘闪电战", "midday": "盘中快照", "noon": "午间总结",
+             "afternoon": "下午速报", "close": "收盘总结"}.get(slot, slot)
+    recommendation = data.get("recommendation", "?")
+    holdings = data.get("holdings", [])
+
+    lines = [f"【{label}】{now} CST", f"建议: {recommendation}", ""]
+    for h in holdings[:12]:
+        code = h.get("code", "")
+        name = h.get("name", "")
+        price = h.get("price", 0)
+        pct = h.get("change_pct", h.get("gap_pct", 0))
+        lines.append(f"{code} {name} ¥{price:.2f} {pct:+.1f}%")
+    body = "\n".join(lines)[:4000]
+    payload = json.dumps({"msgtype": "markdown", "markdown": {"content": body}}, ensure_ascii=False)
+    try:
+        r = subprocess.run(
+            ["curl", "-s", "-X", "POST", url, "-H", "Content-Type: application/json", "-d", payload],
+            capture_output=True, text=True, timeout=10)
+        return '"errcode":0' in r.stdout
+    except Exception:
+        return False
+
 
 def main():
     if len(sys.argv) < 2:
@@ -53,7 +98,7 @@ def main():
         extra = ["--quick"]
 
     cmd = [VENV_PY, app, "--save", out] + extra
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
     payload = {
         "phase": "data_refresh",
         "slot": slot,
@@ -65,6 +110,9 @@ def main():
     if r.returncode != 0:
         payload["stderr"] = (r.stderr or "")[:800]
         _push_refresh_alert(slot, payload["stderr"] or f"exit {r.returncode}")
+        # ── T1.12: 即使失败也尝试推送已有文件 ──
+        if os.path.isfile(out):
+            _send_webhook_report(slot, out)
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         sys.exit(r.returncode)
 
@@ -76,6 +124,9 @@ def main():
         if slot == "afternoon":
             t15 = data.get("tier15_deploy_scan") or {}
             payload["tier15_triggered"] = t15.get("triggered")
+        # ── T1.12: 盘中报告 webhook 即时推送 ──
+        pushed = _send_webhook_report(slot, out)
+        payload["webhook_pushed"] = pushed
     print(json.dumps(payload, ensure_ascii=False, indent=2))
 
 
